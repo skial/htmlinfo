@@ -1,0 +1,11 @@
+-cp src
+
+-lib tink_macro
+
+--macro patchTypes("html.patch")
+
+-debug
+-dce full
+--main Main
+
+--js bin/info.js
