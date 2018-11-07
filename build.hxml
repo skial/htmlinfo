@@ -1,8 +1,10 @@
 -cp src
+-cp test
 
 -lib tink_macro
 
---macro patchTypes("html.patch")
+#--macro patchTypes("html.patch")
+--macro be.types.Html.enhance()
 
 -debug
 -dce full
