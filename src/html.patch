@@ -2,10 +2,6 @@
 // TODO `@:html.attr` is a poor description imo for (g/s)etting
 // a default value.
 
-// @:html.attr(/*Attribute Name*/"", /*Optional access restriction*/(g/s)et)
-// @:events(/*Dependant Attributes*/{}, /*Recommended Events*/[]) //Attributes optional
-// @:default(/*Dependant Attributes*/{}) // Attributes optional.
-
 @:default js.html.Node.nodeValue
 @:default js.html.Node.textContent
 @:default js.html.DOMElement.innerText
