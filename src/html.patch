@@ -8,8 +8,129 @@
 @:html.attr(_, get) js.html.DOMElement.getAttribute
 @:html.attr(_, set) js.html.DOMElement.setAttribute
 
-// <input />
-//@:html.attr("value") js.html.InputElement
+// ----
+// Text Content
+// ----
+
+// <blockquote>
+@:html.tag("blockquote") js.html.QuoteElement
+
+// <div>
+@:html.tag("div") js.html.DivElement
+
+// <dl>
+@:html.tag("dl") js.html.DListElement
+
+// <hr>
+@:html.tag("hr") js.html.HRElement
+
+// <li>
+@:html.tag("li") js.html.LIElement
+
+// <ol>
+@:html.tag("ol") js.html.OListElement
+
+// <p>
+@:html.tag("p") js.html.ParagraphElement
+
+// <pre>
+@:html.tag("pre") js.html.PreElement
+
+// <ul>
+@:html.tag("ul") js.html.UListElement
+
+// ----
+// Inline Text Content
+// ----
+
+// <a>
+@:html.tag("a") js.html.AnchorElement
+@:default js.html.AnchorElement.href
+
+// <data>
+@:html.tag("data") js.html.DataElement
+
+// <q>
+@:html.tag("q") js.html.QuoteElement
+
+// <span>
+@:html.tag("span") js.html.SpanElement
+
+// <time>
+@:html.tag("time") js.html.TimeElement
+
+// ----
+// Image and Multimedia Content
+// ----
+
+// <area>
+@:html.tag("area") js.html.AreaElement
+
+// <audio>
+@:html.tag("audio") js.html.AudioElement
+
+// <img>
+@:html.tag("img") js.html.ImageElement
+
+// <map>
+@:html.tag("map") js.html.MapElement
+
+// <track>
+@:html.tag("track") js.html.TrackElement
+
+// <video>
+@:html.tag("video") js.html.VideoElement
+
+// ----
+// Embedded Content
+// ----
+
+// <embed>
+@:html.tag("embed") js.html.EmbedElement
+
+// <iframe>
+@:html.tag("iframe") js.html.IFrameElement
+
+// <object>
+@:html.tag("object") js.html.ObjectElement
+
+// <param>
+@:html.tag("param") js.html.ParamElement
+
+// <picture>
+@:html.tag("picture") js.html.PictureElement
+
+// <source>
+@:html.tag("source") js.html.SourceElement
+
+// ----
+// Scripting Content
+// ----
+
+// <cancas>
+@:html.tag("canvas") js.html.CanvasElement
+
+// <script>
+@:html.tag("script") js.html.ScriptElement
+
+// ----
+// Form Content
+// ----
+
+// <button>
+@:html.tag("button") js.html.ButtonElement
+
+// <datalist>
+@:html.tag("datalist") js.html.DataListElement
+
+// <fieldset>
+@:html.tag("fieldset") js.html.FieldSetElement
+
+// <form>
+@:html.tag("form") js.html.FormElement
+
+// <input>
+@:html.tag("input") js.html.InputElement
 @:events(["change", "input"]) js.html.InputElement
 @:events({type:"button"}, ["click"]) js.html.InputElement
 @:events({type:"hidden"}, []) js.html.InputElement
@@ -25,3 +146,30 @@
 @:default({type:"date"}) js.html.InputElement.valueAsDate
 @:default({type:"image"}) js.html.InputElement.src
 @:default({type:"file", multiple:_}) js.html.InputElement.files
+
+// <label>
+@:html.tag("label") js.html.LabelElement
+
+// <legend>
+@:html.tag("legend") js.html.LegendElement
+
+// <meter>
+@:html.tag("meter") js.html.MeterElement
+
+// <optgroup>
+@:html.tag("optgroup") js.html.OptGroupElement
+
+// <option>
+@:html.tag("option") js.html.OptionElement
+
+// <output>
+@:html.tag("output") js.html.OutputElement
+
+// <progress>
+@:html.tag("progress") js.html.ProgressElement
+
+// <select>
+@:html.tag("select") js.html.SelectElement
+
+// <textarea>
+@:html.tag("textarea") js.html.TextAreaElement

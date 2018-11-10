@@ -34,7 +34,7 @@ class Html {
         haxe.macro.Compiler.patchTypes("html.patch");
         #else
             #if !debug
-                #error "This methods is only meant to be called from `.hxml` files."
+                #error "This method is only meant to be called from `.hxml` files."
             #end
         #end
     }
