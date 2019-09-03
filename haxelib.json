@@ -1,0 +1,13 @@
+{
+    "name": "htmlinfo",
+    "url": "https://github.com/skial/htmlinfo",
+    "license": "MIT",
+    "classPath": "src",
+    "description": "Html Info adds additional metadata to the standard library JS extern type definitions, sallowing improved code generation via custom macros.",
+    "version": "0.0.1",
+    "releasenote": "Setup",
+    "contributors": ["skial"],
+    "dependencies": {
+        "tink_macro":"git:https://github.com/haxetink/tink_macro#4fd03ed6673d32011eb9423461a63f0e504ab170"
+    }
+  }

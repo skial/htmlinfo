@@ -46,6 +46,7 @@
 // <a>
 @:html.tag("a") js.html.AnchorElement
 @:default js.html.AnchorElement.href
+@:html.attr("href") js.html.AnchorElement.href
 
 // <data>
 @:html.tag("data") js.html.DataElement

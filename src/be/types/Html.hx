@@ -57,6 +57,7 @@ class Html {
                         if (value == '"$attribute"' || value == '_') {
                             if (meta.params.length > 1 && meta.params[1].toString() == 'set') {
                                 setter.push( new HtmlClassField(field) );
+                                
                             } else if (meta.params.length == 1) {
                                 empty.push( new HtmlClassField(field) );
 
@@ -105,6 +106,7 @@ class Html {
                         if (value == '"$attribute"' || value == '_') {
                             if (meta.params.length > 1 && meta.params[1].toString() == 'get') {
                                 setter.push( new HtmlClassField(field) );
+
                             } else if (meta.params.length == 1) {
                                 empty.push( new HtmlClassField(field) );
 
