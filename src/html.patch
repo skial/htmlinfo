@@ -141,7 +141,8 @@
 
 @:html.attr("value", get) js.html.InputElement.value
 @:html.attr("value", set) js.html.InputElement.defaultValue
-@:html.attr("checked") js.html.InputElement.checked
+@:html.attr("checked", get) js.html.InputElement.checked
+@:html.attr("checked", set) js.html.InputElement.defaultChecked
 
 @:default js.html.InputElement.value
 @:default({type:"range"}) js.html.InputElement.valueAsNumber
