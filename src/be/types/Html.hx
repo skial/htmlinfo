@@ -7,9 +7,10 @@ using tink.CoreApi;
 using tink.MacroApi;
 
 enum abstract HtmlMetadata(String) to String from String {
-    var _Default = ':default';
+    var _Default = ':html.default';
     var _PairedAttribute = ':html.attr';
     var _HtmlAst = ':html.ast';
+    var _Events = ':html.events';
 
     @:to public inline function asParamLength() return switch this {
         case _PairedAttribute: 2;
