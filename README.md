@@ -52,6 +52,8 @@ This library picks properties which update the HTML over faster, non-persisting 
 - Some properties don't update their HTML counterparts when set. 
 - Accessing one property over another can be faster or slower. 
 - Some properties have strict requirements, which are better suited to be represented by a typed language.
+ 
+### Attribute's
 
 - IDL attributes *e.g native property access*
   - > dot access property on native javascript object
