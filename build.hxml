@@ -2,6 +2,7 @@
 -cp test
 
 -lib tink_macro
+-lib haxe.macro.Defines
 
 --macro be.types.Html.enhance()
 

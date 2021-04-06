@@ -1,34 +1,143 @@
 package be.types;
 
+import haxe.DynamicAccess;
 import haxe.macro.Type;
 import haxe.macro.Expr;
+import haxe.macro.Defines;
 
 using tink.CoreApi;
 using tink.MacroApi;
 
+@:forward
+@:forwardStatics
+@:using(be.types.Html.HtmlMetadataUsings)
 enum abstract HtmlMetadata(String) to String from String {
-    var _Default = ':html.default';
-    var _PairedAttribute = ':html.attr';
-    var _HtmlAst = ':html.ast';
+    // @:html.tag(string, bool) $type
+    var _Tag = ':html.tag';
+    // @:html.attr(string, ?access, ?attributes) $property
+    var _Attribute = ':html.attr';
+    // @:html.events(array<string>, ?attributes) $type
     var _Events = ':html.events';
 
-    @:to public inline function asParamLength() return switch this {
-        case _PairedAttribute: 2;
-        case _: 0;
+}
+
+class HtmlMetadataUsings {
+    
+    public static function matches(self:HtmlMetadata, entry:MetadataEntry, ident:String, attributes:DynamicAccess<String>):Bool {
+        return switch self {
+            case _Attribute:
+                true;
+
+            case _Events:
+                true;
+
+            case _:
+                false;
+        }
     }
 
 }
 
-@:forward @:forwardStatics @:notNull abstract HtmlClassField(ClassField) to ClassField {
+interface HtmlHandler {
+    function get(type:Type, key:String, attributes:DynamicAccess<String>, follow:Bool = true/*, persist:Bool = true*/):Outcome<Array<ClassField>, Error>;
+    function set(type:Type, key:String, attributes:DynamicAccess<String>, follow:Bool = true/*, persist:Bool = true*/):Outcome<Array<ClassField>, Error>;
+    function has(type:Type, key:String, attributes:DynamicAccess<String>, follow:Bool = true):Outcome<{runtime:Array<ClassField>, comptime:Null<Bool>}, Error>;
+    function remove(type:Type, key:String, attributes:DynamicAccess<String>, follow:Bool = true/*, persist:Bool = true*/):Outcome<Array<ClassField>, Error>;
+    function listen(type:Type, event:String, attributes:DynamicAccess<String>, follow:Bool = true):Outcome<Array<ClassField>, Error>;
+}
 
-    public inline function new(v) this = v;
+@:forward
+@:forwardStatics
+enum abstract Access(String) to String from String {
+    public var Get = 'get';
+    public var Set = 'set';
+    public var All = '_';
+}
 
-    //@:to public inline function asType():Type return this.a;
-    //@:to public inline function asClassField():ClassField return this.b;
+class StdHandler implements HtmlHandler {
+
+    public function search(type:Type, ident:String, metadata:HtmlMetadata, access:Access, filters:DynamicAccess<String>, follow:Bool = true):Outcome<Array<ClassField>, Error> {
+        var result:Outcome<Array<ClassField>, Error> = Failure(new Error('Failed to match against $ident.'));
+
+        switch type {
+            case TInst(_.get() => cls, _) if (cls.isExtern):
+                var empty:Array<ClassField> = [];
+                var getter:Array<ClassField> = [];
+
+                for (field in cls.fields.get()) {
+                    if (field.meta.has(metadata)) {
+                        var meta = field.meta.extract(metadata)[0];
+
+                        if (meta.params.length == 0) continue;
+
+                        var value = meta.params[0].toString();
+                        if (Debug) trace( ident, value );
+                        if (value == '"$ident"' || value == '_') {
+                            if (meta.params.length > 1 && meta.params[1].toString() == access) {
+                                getter.push( field );
+
+                            } else if (meta.params.length == 1) {
+                                empty.push( field );
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+                var array:Array<ClassField> = getter.concat( empty );
+
+                if (follow && cls.superClass != null) {
+                    switch get(TInst(cls.superClass.t, cls.superClass.params), key, attributes, follow) {
+                        case Success(values): for (value in values) array.push( value );
+                        case _:
+                    }
+
+                }
+
+                if (array.length > 0) result = Success(array);
+
+            case x:
+                if (Debug) {
+                    trace( x );
+                }
+
+        }
+
+        return result;
+    }
+
+    public function get(type:Type, key:String, attributes:DynamicAccess<String>, follow:Bool = true/*, persist:Bool = true*/):Outcome<Array<ClassField>, Error> {
+        
+    }
+
+    public function set(type:Type, key:String, attributes:DynamicAccess<String>, follow:Bool = true/*, persist:Bool = true*/):Outcome<Array<ClassField>, Error> {
+        var result:Outcome<Array<ClassField>, Error> = Failure(new Error('Failed to match against $key.'));
+        return result;
+    }
+
+    public function has(type:Type, key:String, attributes:DynamicAccess<String>, follow:Bool = true):Outcome<{runtime:Array<ClassField>, comptime:Null<Bool>}, Error> {
+        var result:Outcome<{runtime:Array<ClassField>, comptime:Null<Bool>}, Error> = Failure(new Error('Failed to match against $key.'));
+        return result;
+    }
+
+    public function remove(type:Type, key:String, attributes:DynamicAccess<String>, follow:Bool = true/*, persist:Bool = true*/):Outcome<Array<ClassField>, Error> {
+        var result:Outcome<Array<ClassField>, Error> = Failure(new Error('Failed to match against $key.'));
+        return result;
+    }
+
+    public function listen(type:Type, event:String, attributes:DynamicAccess<String>, follow:Bool = true):Outcome<Array<ClassField>, Error> {
+        var result:Outcome<Array<ClassField>, Error> = Failure(new Error('Failed to match against $event.'));
+        return result;
+    }
 
 }
 
 class Html {
+
+    @:persistent public static var handlers:Array<HtmlHandler> = [];
 
     @:noCompletion public static function enhance():Void {
         #if (eval || macro)
@@ -40,27 +149,27 @@ class Html {
         #end
     }
 
-    public static function setAttribute(t:Type, attribute:String, ?follow:Bool = false):Outcome<Array<HtmlClassField>, Error> {
-        var result:Outcome<Array<HtmlClassField>, Error> = Failure(new Error('Failed to match against $attribute.'));
+    public static function setAttribute(t:Type, attribute:String, ?follow:Bool = false):Outcome<Array<ClassField>, Error> {
+        var result:Outcome<Array<ClassField>, Error> = Failure(new Error('Failed to match against $attribute.'));
 
         switch t {
             case TInst(_.get() => cls, _) if (cls.isExtern):
-                var empty:Array<HtmlClassField> = [];
-                var setter:Array<HtmlClassField> = [];
+                var empty:Array<ClassField> = [];
+                var setter:Array<ClassField> = [];
 
                 for (field in cls.fields.get()) {
-                    if (field.meta.has(_PairedAttribute)) {
-                        var meta = field.meta.extract(_PairedAttribute)[0];
+                    if (field.meta.has(_Attribute)) {
+                        var meta = field.meta.extract(_Attribute)[0];
 
                         if (meta.params.length == 0) continue;
 
                         var value = meta.params[0].toString();
                         if (value == '"$attribute"' || value == '_') {
                             if (meta.params.length > 1 && meta.params[1].toString() == 'set') {
-                                setter.push( new HtmlClassField(field) );
+                                setter.push( field );
                                 
                             } else if (meta.params.length == 1) {
-                                empty.push( new HtmlClassField(field) );
+                                empty.push( field );
 
                             }
 
@@ -70,7 +179,7 @@ class Html {
 
                 }
 
-                var array:Array<HtmlClassField> = setter.concat( empty );
+                var array:Array<ClassField> = setter.concat( empty );
 
                 if (follow && cls.superClass != null) switch setAttribute(TInst(cls.superClass.t, cls.superClass.params), attribute, follow) {
                     case Success(values): array = array.concat(values);
@@ -80,36 +189,36 @@ class Html {
                 if (array.length > 0) result = Success(array);
 
             case x:
-                #if debug
-                trace( x );
-                #end
+                if (Debug) {
+                    trace( x );
+                }
 
         }
 
         return result;
     }
 
-    public static function getAttribute(t:Type, attribute:String, ?follow:Bool = false):Outcome<Array<HtmlClassField>, Error> {
-        var result:Outcome<Array<HtmlClassField>, Error> = Failure(new Error('Failed to match against $attribute.'));
+    public static function getAttribute(t:Type, attribute:String, ?follow:Bool = false):Outcome<Array<ClassField>, Error> {
+        var result:Outcome<Array<ClassField>, Error> = Failure(new Error('Failed to match against $attribute.'));
 
         switch t {
             case TInst(_.get() => cls, _) if (cls.isExtern):
-                var empty:Array<HtmlClassField> = [];
-                var setter:Array<HtmlClassField> = [];
+                var empty:Array<ClassField> = [];
+                var setter:Array<ClassField> = [];
 
                 for (field in cls.fields.get()) {
-                    if (field.meta.has(_PairedAttribute)) {
-                        var meta = field.meta.extract(_PairedAttribute)[0];
+                    if (field.meta.has(_Attribute)) {
+                        var meta = field.meta.extract(_Attribute)[0];
 
                         if (meta.params.length == 0) continue;
 
                         var value = meta.params[0].toString();
                         if (value == '"$attribute"' || value == '_') {
                             if (meta.params.length > 1 && meta.params[1].toString() == 'get') {
-                                setter.push( new HtmlClassField(field) );
+                                setter.push( field );
 
                             } else if (meta.params.length == 1) {
-                                empty.push( new HtmlClassField(field) );
+                                empty.push( field );
 
                             }
 
@@ -119,7 +228,7 @@ class Html {
 
                 }
 
-                var array:Array<HtmlClassField> = setter.concat( empty );
+                var array:Array<ClassField> = setter.concat( empty );
 
                 if (follow && cls.superClass != null) switch getAttribute(TInst(cls.superClass.t, cls.superClass.params), attribute, follow) {
                     case Success(values): array = array.concat(values);
@@ -129,17 +238,17 @@ class Html {
                 if (array.length > 0) result = Success(array);
 
             case x:
-                #if debug
-                trace( x );
-                #end
+                if (Debug) {
+                    trace( x );
+                }
 
         }
 
         return result;
     }
 
-    public static function defaultValues(t:Type, ?follow:Bool = false):Outcome<Array<HtmlClassField>, Error> {
-        var result:Outcome<Array<HtmlClassField>, Error> = Failure(new Error('Unable to find @$_Default on ${t.getID()}.'));
+    /*public static function defaultValues(t:Type, ?follow:Bool = false):Outcome<Array<ClassField>, Error> {
+        var result:Outcome<Array<ClassField>, Error> = Failure(new Error('Unable to find @$_Default on ${t.getID()}.'));
 
         switch t {
             case TInst(_.get() => cls, _) if (cls.isExtern):
@@ -151,12 +260,12 @@ class Html {
                         var meta = field.meta.extract(_Default)[0];
 
                         (meta.params.length == 0 ? emptyDefaults : defaults)
-                        .push( new HtmlClassField(field) );
+                        .push( field );
 
                     }
                 }
 
-                var array:Array<HtmlClassField> = emptyDefaults.concat( defaults );
+                var array:Array<ClassField> = emptyDefaults.concat( defaults );
 
                 if (follow && cls.superClass != null) switch defaultValues( TInst(cls.superClass.t, cls.superClass.params), follow ) {
                     case Success(v): array = array.concat( v );
@@ -172,6 +281,6 @@ class Html {
         }
 
         return result;
-    }
+    }*/
 
 }
