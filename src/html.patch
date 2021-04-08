@@ -138,66 +138,153 @@
 
 // <input type="text">
 // <input> elements without a `type` attribute default to `type="text"`
+// @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/text
 @:html.attr("value", get, {type:"text"}) js.html.InputElement.value
 @:html.attr("value", set, {type:"text"}) js.html.InputElement.defaultValue
 @:html.events(["change", "input"], {type:"text"}) js.html.InputElement
 
 // <input type="button">
+// @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/button
 @:html.attr("value", _, {type:"button"}) js.html.InputElement.value
 @:html.events(["click"], {type:"button"}) js.html.InputElement
 
 // <input type="checkbox">
-@:html.attr("value", _, {text:"checkbox"}) js.html.InputElement.value
-@:html.attr("checked", get, {text:"checkbox"}) js.html.InputElement.checked
-@:html.attr("checked", set, {text:"checkbox"}) js.html.InputElement.defaultChecked
+// @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/checkbox
+@:html.attr("value", _, {type:"checkbox"}) js.html.InputElement.value
+@:html.attr("checked", get, {type:"checkbox"}) js.html.InputElement.checked
+@:html.attr("checked", set, {type:"checkbox"}) js.html.InputElement.defaultChecked
 @:html.events(["change", "input"], {type:"checkbox"}) js.html.InputElement
 
 // <input type="color">
-@:html.attr("value", _, {text:"color"}) js.html.InputElement.value
+// @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/color
+@:html.attr("value", _, {type:"color"}) js.html.InputElement.value
 @:html.events(["change", "input"], {type:"color"}) js.html.InputElement
 
 // <input type="date">
-@:html.attr("value", _, {text:"date"}) js.html.InputElement.valueAsNumber
-@:html.attr("value", _, {text:"date"}) js.html.InputElement.valueAsDate
-@:html.attr("value", _, {text:"date"}) js.html.InputElement.value
-@:html.attr("valueAsNumber", _, {text:"date"}) js.html.InputElement.valueAsNumber
-@:html.attr("valueAsDate", _, {text:"date"}) js.html.InputElement.valueAsDate
+// @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/date
+@:html.attr("value", _, {type:"date"}) js.html.InputElement.valueAsNumber
+@:html.attr("value", _, {type:"date"}) js.html.InputElement.valueAsDate
+@:html.attr("value", _, {type:"date"}) js.html.InputElement.value
 @:html.events(["change", "input"], {type:"date"}) js.html.InputElement
 
 // <input type="datetime-local">
-@:html.attr("value", _, {text:"datetime-local"}) js.html.InputElement.value
-@:html.attr("value", _, {text:"datetime-local"}) js.html.InputElement.valueAsNumber
+// @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/datetime-local
+@:html.attr("value", _, {type:"datetime-local"}) js.html.InputElement.valueAsNumber
+@:html.attr("value", _, {type:"datetime-local"}) js.html.InputElement.value
 @:html.events(["change", "input"], {type:"datetime-local"}) js.html.InputElement
 
 // <input type="email">
-@:html.attr("value", _, {text:"email"}) js.html.InputElement.value
+// @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/email
+@:html.attr("value", _, {type:"email"}) js.html.InputElement.value
 @:html.events(["change", "input"], {type:"email"}) js.html.InputElement
 
 // <input type="file">
-@:html.attr("value", _, {text:"file"}) js.html.InputElement.value
-@:html.attr("accept", _, {text:"file"}) js.html.InputElement.accept
-@:html.attr("capture", _, {text:"file"}) js.html.InputElement.capture
-@:html.attr("files", _, {text:"file"}) js.html.InputElement.files
-@:html.attr("multiple", _, {text:"file"}) js.html.InputElement.multiple
+// @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/file
+@:html.attr("value", _, {type:"file"}) js.html.InputElement.value
+@:html.attr("accept", _, {type:"file"}) js.html.InputElement.accept
+@:html.attr("capture", _, {type:"file"}) js.html.InputElement.capture
+@:html.attr("files", _, {type:"file"}) js.html.InputElement.files
+@:html.attr("multiple", _, {type:"file"}) js.html.InputElement.multiple
 @:html.events(["change", "input"], {type:"file"}) js.html.InputElement
 
 // <input type="hidden">
-@:html.attr("value", get, {text:"hidden"}) js.html.InputElement.value
+// @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/hidden
+@:html.attr("value", get, {type:"hidden"}) js.html.InputElement.value
 @:html.attr("value", set, {type:"hidden"}) js.html.InputElement.defaultValue
 
 // <input type="image">
-@:html.attr("src", get, {text:"image"}) js.html.InputElement.src
-@:html.attr("alt", _, {text:"image"}) js.html.InputElement.alt
+// @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/image
+@:html.attr("src", get, {type:"image"}) js.html.InputElement.src
+@:html.attr("alt", _, {type:"image"}) js.html.InputElement.alt
 
 // <input type="month">
-@:html.attr("value", _, {text:"month"}) js.html.InputElement.value
+// @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/month
+@:html.attr("value", _, {type:"month"}) js.html.InputElement.value
 @:html.events(["change", "input"], {type:"month"}) js.html.InputElement
 
 // <input type="number">
-@:html.attr("value", _, {text:"number"}) js.html.InputElement.valueAsNumber
-@:html.attr("value", _, {text:"number"}) js.html.InputElement.value
-@:html.attr("valueAsNumber", _, {text:"number"}) js.html.InputElement.valueAsNumber
+// @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/number
+@:html.attr("value", _, {type:"number"}) js.html.InputElement.valueAsNumber
+@:html.attr("value", _, {type:"number"}) js.html.InputElement.value
 @:html.events(["change", "input"], {type:"number"}) js.html.InputElement
+
+// <input type="password">
+// @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/password
+@:html.attr("value", get, {type:"password"}) js.html.InputElement.value
+@:html.events(["change", "input"], {type:"password"}) js.html.InputElement
+
+// <input type="radio">
+// @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/radio
+@:html.attr("value", _, {type:"radio"}) js.html.InputElement.value
+@:html.attr("checked", get, {type:"radio"}) js.html.InputElement.checked
+@:html.attr("checked", set, {type:"radio"}) js.html.InputElement.defaultChecked
+@:html.events(["change", "input"], {type:"radio"}) js.html.InputElement
+
+// <input type="range">
+// @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/range
+@:html.attr("value", _, {type:"range"}) js.html.InputElement.valueAsNumber
+@:html.attr("value", _, {type:"range"}) js.html.InputElement.value
+@:html.events(["change", "input"], {type:"range"}) js.html.InputElement
+
+// <input type="reset">
+// @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/reset
+@:html.attr("value", _, {type:"reset"}) js.html.InputElement.value
+
+// <input type="search">
+// @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/search
+@:html.attr("value", _, {type:"search"}) js.html.InputElement.value
+@:html.attr("list", _, {type:"search"}) js.html.InputElement.list
+@:html.attr("maxlength", _, {type:"search"}) js.html.InputElement.maxLength
+@:html.attr("minlength", _, {type:"search"}) js.html.InputElement.minLength
+@:html.attr("pattern", _, {type:"search"}) js.html.InputElement.pattern
+@:html.attr("placeholder", _, {type:"search"}) js.html.InputElement.placeholder
+@:html.attr("readonly", _, {type:"search"}) js.html.InputElement.readonly
+@:html.attr("size", _, {type:"search"}) js.html.InputElement.size
+@:html.attr("spellcheck", _, {type:"search"}) js.html.InputElement.spellcheck
+@:html.events(["change", "input"], {type:"search"}) js.html.InputElement
+
+// <input type="submit">
+// @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/submit
+@:html.attr("value", _, {type:"submit"}) js.html.InputElement.value
+@:html.events(["click"], {type:"submit"}) js.html.InputElement
+
+// <input type="tel">
+// @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/tel
+@:html.attr("value", _, {type:"tel"}) js.html.InputElement.value
+@:html.attr("list", _, {type:"tel"}) js.html.InputElement.list
+@:html.attr("maxlength", _, {type:"tel"}) js.html.InputElement.maxLength
+@:html.attr("minlength", _, {type:"tel"}) js.html.InputElement.minLength
+@:html.attr("pattern", _, {type:"tel"}) js.html.InputElement.pattern
+@:html.attr("placeholder", _, {type:"tel"}) js.html.InputElement.placeholder
+@:html.attr("readonly", _, {type:"tel"}) js.html.InputElement.readonly
+@:html.attr("size", _, {type:"tel"}) js.html.InputElement.size
+@:html.events(["change", "input"], {type:"tel"}) js.html.InputElement
+
+// <input type="time">
+// @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/time
+@:html.attr("value", _, {type:"time"}) js.html.InputElement.valueAsNumber
+@:html.attr("value", _, {type:"time"}) js.html.InputElement.valueAsDate
+@:html.attr("value", _, {type:"time"}) js.html.InputElement.value
+@:html.attr("list", _, {type:"time"}) js.html.InputElement.list
+@:html.attr("max", _, {type:"time"}) js.html.InputElement.max
+@:html.attr("min", _, {type:"time"}) js.html.InputElement.min
+@:html.attr("readonly", _, {type:"time"}) js.html.InputElement.readonly
+@:html.attr("step", _, {type:"time"}) js.html.InputElement.step
+@:html.events(["change", "input"], {type:"time"}) js.html.InputElement
+
+// <input type="url">
+// @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/url
+@:html.attr("value", _, {type:"url"}) js.html.InputElement.value
+@:html.attr("list", _, {type:"url"}) js.html.InputElement.list
+@:html.events(["change", "input"], {type:"url"}) js.html.InputElement
+
+// <input type="week">
+// @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/week
+@:html.attr("value", _, {type:"week"}) js.html.InputElement.valueAsNumber
+@:html.attr("value", _, {type:"week"}) js.html.InputElement.valueAsDate
+@:html.attr("value", _, {type:"week"}) js.html.InputElement.value
+@:html.attr("list", _, {type:"week"}) js.html.InputElement.list
+@:html.events(["change", "input"], {type:"week"}) js.html.InputElement
 
 @:default js.html.InputElement.value
 @:default({type:"range"}) js.html.InputElement.valueAsNumber
