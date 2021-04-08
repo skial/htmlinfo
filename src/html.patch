@@ -286,12 +286,6 @@
 @:html.attr("list", _, {type:"week"}) js.html.InputElement.list
 @:html.events(["change", "input"], {type:"week"}) js.html.InputElement
 
-@:default js.html.InputElement.value
-@:default({type:"range"}) js.html.InputElement.valueAsNumber
-@:default({type:"date"}) js.html.InputElement.valueAsDate
-@:default({type:"image"}) js.html.InputElement.src
-@:default({type:"file", multiple:_}) js.html.InputElement.files
-
 // <label>
 @:html.tag("label") js.html.LabelElement
 
