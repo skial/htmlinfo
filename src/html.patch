@@ -132,17 +132,72 @@
 
 // <input>
 @:html.tag("input") js.html.InputElement
-@:events(["change", "input"]) js.html.InputElement
-@:events({type:"button"}, ["click"]) js.html.InputElement
-@:events({type:"hidden"}, []) js.html.InputElement
-@:events({type:"image"}, []) js.html.InputElement
-@:events({type:"reset"}, ["click"]) js.html.InputElement
-@:events({type:"submit"}, ["click"]) js.html.InputElement
 
 @:html.attr("value", get) js.html.InputElement.value
 @:html.attr("value", set) js.html.InputElement.defaultValue
-@:html.attr("checked", get) js.html.InputElement.checked
-@:html.attr("checked", set) js.html.InputElement.defaultChecked
+
+// <input type="text">
+// <input> elements without a `type` attribute default to `type="text"`
+@:html.attr("value", get, {type:"text"}) js.html.InputElement.value
+@:html.attr("value", set, {type:"text"}) js.html.InputElement.defaultValue
+@:html.events(["change", "input"], {type:"text"}) js.html.InputElement
+
+// <input type="button">
+@:html.attr("value", _, {type:"button"}) js.html.InputElement.value
+@:html.events(["click"], {type:"button"}) js.html.InputElement
+
+// <input type="checkbox">
+@:html.attr("value", _, {text:"checkbox"}) js.html.InputElement.value
+@:html.attr("checked", get, {text:"checkbox"}) js.html.InputElement.checked
+@:html.attr("checked", set, {text:"checkbox"}) js.html.InputElement.defaultChecked
+@:html.events(["change", "input"], {type:"checkbox"}) js.html.InputElement
+
+// <input type="color">
+@:html.attr("value", _, {text:"color"}) js.html.InputElement.value
+@:html.events(["change", "input"], {type:"color"}) js.html.InputElement
+
+// <input type="date">
+@:html.attr("value", _, {text:"date"}) js.html.InputElement.valueAsNumber
+@:html.attr("value", _, {text:"date"}) js.html.InputElement.valueAsDate
+@:html.attr("value", _, {text:"date"}) js.html.InputElement.value
+@:html.attr("valueAsNumber", _, {text:"date"}) js.html.InputElement.valueAsNumber
+@:html.attr("valueAsDate", _, {text:"date"}) js.html.InputElement.valueAsDate
+@:html.events(["change", "input"], {type:"date"}) js.html.InputElement
+
+// <input type="datetime-local">
+@:html.attr("value", _, {text:"datetime-local"}) js.html.InputElement.value
+@:html.attr("value", _, {text:"datetime-local"}) js.html.InputElement.valueAsNumber
+@:html.events(["change", "input"], {type:"datetime-local"}) js.html.InputElement
+
+// <input type="email">
+@:html.attr("value", _, {text:"email"}) js.html.InputElement.value
+@:html.events(["change", "input"], {type:"email"}) js.html.InputElement
+
+// <input type="file">
+@:html.attr("value", _, {text:"file"}) js.html.InputElement.value
+@:html.attr("accept", _, {text:"file"}) js.html.InputElement.accept
+@:html.attr("capture", _, {text:"file"}) js.html.InputElement.capture
+@:html.attr("files", _, {text:"file"}) js.html.InputElement.files
+@:html.attr("multiple", _, {text:"file"}) js.html.InputElement.multiple
+@:html.events(["change", "input"], {type:"file"}) js.html.InputElement
+
+// <input type="hidden">
+@:html.attr("value", get, {text:"hidden"}) js.html.InputElement.value
+@:html.attr("value", set, {type:"hidden"}) js.html.InputElement.defaultValue
+
+// <input type="image">
+@:html.attr("src", get, {text:"image"}) js.html.InputElement.src
+@:html.attr("alt", _, {text:"image"}) js.html.InputElement.alt
+
+// <input type="month">
+@:html.attr("value", _, {text:"month"}) js.html.InputElement.value
+@:html.events(["change", "input"], {type:"month"}) js.html.InputElement
+
+// <input type="number">
+@:html.attr("value", _, {text:"number"}) js.html.InputElement.valueAsNumber
+@:html.attr("value", _, {text:"number"}) js.html.InputElement.value
+@:html.attr("valueAsNumber", _, {text:"number"}) js.html.InputElement.valueAsNumber
+@:html.events(["change", "input"], {type:"number"}) js.html.InputElement
 
 @:default js.html.InputElement.value
 @:default({type:"range"}) js.html.InputElement.valueAsNumber
