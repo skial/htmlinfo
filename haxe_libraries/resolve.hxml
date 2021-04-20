@@ -1,0 +1,7 @@
+# @install: lix --silent download "gh://github.com/skial/resolve#b7b7163be499c84513c4662beef1f01346aa08e2" into resolve/0.0.1/github/b7b7163be499c84513c4662beef1f01346aa08e2
+-lib haxe.macro.Defines
+-lib haxe.macro.Metas
+-lib tink_macro
+-lib tink_unittest
+-cp ${HAXE_LIBCACHE}/resolve/0.0.1/github/b7b7163be499c84513c4662beef1f01346aa08e2/src
+-D resolve=0.0.1

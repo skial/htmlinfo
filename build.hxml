@@ -3,8 +3,9 @@
 
 -lib tink_macro
 -lib haxe.macro.Defines
+-lib resolve
 
---macro be.types.Html.enhance()
+--macro be.types.HtmlInfo.enhance()
 
 -debug
 -dce full

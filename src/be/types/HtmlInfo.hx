@@ -10,20 +10,20 @@ using StringTools;
 using tink.CoreApi;
 using tink.MacroApi;
 using haxe.macro.TypeTools;
-using be.types.Html.CacheUtils;
-using be.types.Html.ObjectFieldUtils;
+using be.types.HtmlInfo.CacheUtils;
+using be.types.HtmlInfo.ObjectFieldUtils;
 
 interface HtmlHandler {
     function get(type:Type, key:String, attributes:DynamicAccess<String>, follow:Bool = true/*, persist:Bool = true*/):Outcome<Array<ClassField>, Error>;
     function set(type:Type, key:String, attributes:DynamicAccess<String>, follow:Bool = true/*, persist:Bool = true*/):Outcome<Array<ClassField>, Error>;
-    function has(type:Type, key:String, attributes:DynamicAccess<String>, follow:Bool = true):Outcome<{runtime:Array<ClassField>, comptime:Null<Bool>}, Error>;
+    function has(type:Type, key:String, attributes:DynamicAccess<String>, follow:Bool = true):Outcome<Array<ClassField>, Error>;
     function remove(type:Type, key:String, attributes:DynamicAccess<String>, follow:Bool = true/*, persist:Bool = true*/):Outcome<Array<ClassField>, Error>;
     function listen(type:Type, event:String, attributes:DynamicAccess<String>, follow:Bool = true):Outcome<Array<ClassField>, Error>;
 }
 
 @:forward
 @:forwardStatics
-@:using(be.types.Html.HtmlMetadataUsings)
+@:using(be.types.HtmlInfo.HtmlMetadataUsings)
 enum abstract HtmlMetadata(String) to String from String {
     // @:html.tag(string, bool) $type
     var _Tag = ':html.tag';
@@ -54,8 +54,8 @@ enum abstract HtmlMetadata(String) to String from String {
         }
     }
 
-    public var access(get, never):Int;
-    private inline function get_access():Int {
+    public var action(get, never):Int;
+    private inline function get_action():Int {
         return switch this {
             case _Attribute: 1;
             case _: -1;
@@ -66,17 +66,19 @@ enum abstract HtmlMetadata(String) to String from String {
 
 @:forward
 @:forwardStatics
-enum abstract Access(String) to String from String {
+enum abstract Action(String) to String from String {
     public var Get = 'get';
     public var Set = 'set';
+    public var Has = 'has';
+    public var Delete = 'del';
     public var All = '_';
 
-    @:op(A == B) public static inline function equals(a:Access, b:String):Bool {
+    @:op(A == B) public static inline function equals(a:Action, b:String):Bool {
         return ((a:String) == All || b == All) || (a:String) == b;
     }
 }
 
-@:nullSaftey(Strict)
+@:nullSafety(Strict)
 class CacheUtils {
 
     public static var attributes:StringMap<DynamicAccess<String>> = new StringMap();
@@ -85,16 +87,16 @@ class CacheUtils {
         var key = null;
         var meta:HtmlMetadata = entry.name;
         if (meta.ident == -1 || meta.attr == -1) return key;
-        var access = meta.access > -1 ? entry.params[meta.access].toString() : '';
+        var action = meta.action > -1 ? entry.params[meta.action].toString() : '';
 
-        key = type.toString() + fieldName + meta + entry.params[meta.ident].toString() + access;
+        key = type.toString() + fieldName + meta + entry.params[meta.ident].toString() + action;
 
         return key;
     }
 
 }
 
-@:nullSaftey(Strict)
+@:nullSafety(Strict)
 class ObjectFieldUtils {
 
     /**
@@ -112,28 +114,27 @@ class ObjectFieldUtils {
 
 }
 
-@:nullSaftey(Strict)
+@:nullSafety(Strict)
 class HtmlMetadataUsings {
 
     /**
         Finds `self` in `entry` matching `ident` againsts `entry`
     **/
-    public static function matches(self:HtmlMetadata, entry:MetadataEntry, ident:String, access:Access = All):Bool {
+    public static function matches(self:HtmlMetadata, entry:MetadataEntry, ident:String, action:Action = All):Bool {
         // None of the metadata entries are empty.
         if (entry.params.length == 0) return false;
         var name = self.ident > -1 ? entry.params[self.ident].toString().replace('"', '') : '/';
-        var fit = self.access > -1 ? entry.params[self.access].toString().replace('"', '') : '/';
-
-        if (Debug) {
-            trace( ident, name, self, entry.name, access, fit );
-        }
+        var fit = self.action > -1 ? entry.params[self.action].toString().replace('"', '') : '/';
 
         return switch self {
-            case _Attribute == entry.name => true if ((name == ident || name == All) && access == fit):
+            case _Attribute == entry.name => true if ((name == ident || name == All) && action == fit):
                 true;
 
             case _Events == entry.name => true if (name.indexOf(ident) > -1 || name == All):
                 true;
+
+            case '_' if (entry.name.startsWith(':html.')):
+                (_Attribute.matches(entry, ident, action) || _Events.matches(entry, ident, action));
 
             case _:
                 false;
@@ -180,31 +181,42 @@ class HtmlMetadataUsings {
 
 }
 
-@:nullSaftey(Strict)
+@:nullSafety(Strict)
 class StdHandler implements HtmlHandler {
 
     public function new() {}
 
-    public function search(type:Type, ident:String, metadata:HtmlMetadata, access:Access, attributes:DynamicAccess<String>, follow:Bool = true):Outcome<Array<ClassField>, Error> {
+    public function search(type:Type, ident:String, metadata:HtmlMetadata, action:Action, attributes:DynamicAccess<String>, follow:Bool = true):Outcome<Array<ClassField>, Error> {
         var result:Outcome<Array<ClassField>, Error> = Failure(new Error('Failed to match against $ident.'));
 
         switch type {
             case TInst(_.get() => cls, _) if (cls.isExtern):
+                if (Debug) {
+                    trace( '<checking type ...>' );
+                    trace( '⨽ type      : ' + cls.name );
+                    trace( '<for ...>' );
+                    trace( '⨽ ident     : ' + ident );
+                    trace( '⨽ action    : ' + action );
+                    trace( '⨽ attrs     : ' + attributes );
+
+                }
                 var array:Array<ClassField> = [];
 
                 for (field in cls.fields.get()) {
                     if (field.meta.has(metadata)) {
                         var meta = field.meta.extract(metadata)[0];
-                        var aKeeper = metadata.matches(meta, ident, access);
+                        var aKeeper = metadata.matches(meta, ident, action);
 
                         if (attributes.keys().length > 0) {
                             aKeeper = aKeeper && metadata.filter(meta, attributes, type, field);
                         }
 
                         if (Debug) {
-                            trace( metadata.matches(meta, ident) );
-                            trace( attributes.keys().length );
-                            trace( aKeeper );
+                            trace( '<checking ...>' );
+                            trace( '⨽ field     : ' + field.name );
+                            trace( '⨽ meta      : ' + meta.toString() );
+                            trace( '<keep ...>' );
+                            trace( '⨽ bool      : ' + aKeeper );
                         }
 
                         if (aKeeper) array.push( field );
@@ -215,7 +227,8 @@ class StdHandler implements HtmlHandler {
 
                 if (follow && cls.superClass != null) {
                     if (Debug) {
-                        trace( 'Checking ${cls.superClass.t.get().name}' );
+                        trace( '<checking parent ...>' );
+                        trace( '⨽ name      : ' + cls.superClass.t.get().name );
                     }
                     switch get(TInst(cls.superClass.t, cls.superClass.params), ident, attributes, follow) {
                         case Success(values): for (value in values) array.push( value );
@@ -244,14 +257,12 @@ class StdHandler implements HtmlHandler {
         return search(type, key, _Attribute, Set, attributes, follow);
     }
 
-    public function has(type:Type, key:String, attributes:DynamicAccess<String>, follow:Bool = true):Outcome<{runtime:Array<ClassField>, comptime:Null<Bool>}, Error> {
-        var result:Outcome<{runtime:Array<ClassField>, comptime:Null<Bool>}, Error> = Failure(new Error('Failed to match against $key.'));
-        return result;
+    public inline function has(type:Type, key:String, attributes:DynamicAccess<String>, follow:Bool = true):Outcome<Array<ClassField>, Error> {
+        return search(type, key, _Attribute, Has, attributes, follow);
     }
 
     public function remove(type:Type, key:String, attributes:DynamicAccess<String>, follow:Bool = true/*, persist:Bool = true*/):Outcome<Array<ClassField>, Error> {
-        var result:Outcome<Array<ClassField>, Error> = Failure(new Error('Failed to match against $key.'));
-        return result;
+        return search(type, key, _Attribute, Delete, attributes, follow);
     }
 
     public function listen(type:Type, event:String, attributes:DynamicAccess<String>, follow:Bool = true):Outcome<Array<ClassField>, Error> {
@@ -261,8 +272,8 @@ class StdHandler implements HtmlHandler {
 
 }
 
-@:nullSaftey(Strict)
-class Html {
+@:nullSafety(Strict)
+class HtmlInfo {
 
     @:persistent public static var handlers:Array<HtmlHandler> = [new StdHandler()];
 

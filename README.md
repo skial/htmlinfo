@@ -79,7 +79,7 @@ This library picks properties which update the HTML over faster, non-persisting 
 - `@:html.events($idents, ?$attributes) $type`
 - `@:html.attr("$ident", ?$access, ?$attributes, ?$persistent) $type.$property`
   + `@:html.default(?$attributes, ?$persistent) $type.$property`
-  + shortcut for `@:html.attr("$ident", _, ?$attributes, ?$persistent) $type.$property`
+  + shortcut for `@:html.attr("$property", _, ?$attributes, ?$persistent) $type.$property`
 
 + `$idents` are `String`
 + `$attributes` are `haxe.DynamicAccess<String>`
