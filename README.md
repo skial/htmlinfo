@@ -104,26 +104,6 @@ Start off with the most specific `$Type` passed in, assume in this case an HTMLE
 - All matches are pushed into an array. The first element should be the best match. All expressions in the results array **should** be valid at runtime.
     - *Easier said than done.*
 
-### Processor
-
-- An Array of processors.
-  - Macro function to add additional processors.
-  - Push to end of list.
-- Index 0 processor will always be the standard one to resolve based on the metadata listed above.
-- Each processor will have to `implement Interface`.
-- Index 0 will implement all interface fields. 
-- Others processors can either depend on Index 0 directly or fall through to the next one.
-
-```haxe
-interface Processor {
-    function get(type:Type, key:String, attributes = {}, follow = true, persist = true):Outcome<Array<Field>, Error>;
-    function set(type:Type, key:String, attributes = {}, follow = true, persist = true):Outcome<Array<Field>, Error>;
-    function has(type:Type, key:String, attributes = {}, follow = true):Outcome<{runtime:Array<Field>, comptime:Null<Bool>}, Error>;
-    function remove(type:Type, key:String, attributes = {}, follow = true, persist = true):Outcome<Array<Field>, Error>;
-    function listen(type:Type, event:String, attributes = {}, follow = true):Outcome<Array<Field>, Error>;
-}
-```
-
 ### Library API
 
 ```haxe

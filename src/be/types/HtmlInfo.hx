@@ -13,14 +13,6 @@ using haxe.macro.TypeTools;
 using be.types.HtmlInfo.CacheUtils;
 using be.types.HtmlInfo.ObjectFieldUtils;
 
-interface HtmlHandler {
-    function get(type:Type, key:String, attributes:DynamicAccess<String>, follow:Bool = true/*, persist:Bool = true*/):Outcome<Array<ClassField>, Error>;
-    function set(type:Type, key:String, attributes:DynamicAccess<String>, follow:Bool = true/*, persist:Bool = true*/):Outcome<Array<ClassField>, Error>;
-    function has(type:Type, key:String, attributes:DynamicAccess<String>, follow:Bool = true):Outcome<Array<ClassField>, Error>;
-    function remove(type:Type, key:String, attributes:DynamicAccess<String>, follow:Bool = true/*, persist:Bool = true*/):Outcome<Array<ClassField>, Error>;
-    function listen(type:Type, event:String, attributes:DynamicAccess<String>, follow:Bool = true):Outcome<Array<ClassField>, Error>;
-}
-
 @:forward
 @:forwardStatics
 @:using(be.types.HtmlInfo.HtmlMetadataUsings)
@@ -182,11 +174,19 @@ class HtmlMetadataUsings {
 }
 
 @:nullSafety(Strict)
-class StdHandler implements HtmlHandler {
+class HtmlInfo {
 
-    public function new() {}
+    @:noCompletion public static function enhance():Void {
+        #if (eval || macro)
+        haxe.macro.Compiler.patchTypes("html.patch");
+        #else
+            #if !debug
+                #error "This method is only meant to be called from `.hxml` files."
+            #end
+        #end
+    }
 
-    public function search(type:Type, ident:String, metadata:HtmlMetadata, action:Action, attributes:DynamicAccess<String>, follow:Bool = true):Outcome<Array<ClassField>, Error> {
+    public static function search(type:Type, ident:String, metadata:HtmlMetadata, action:Action, attributes:DynamicAccess<String>, follow:Bool = true):Outcome<Array<ClassField>, Error> {
         var result:Outcome<Array<ClassField>, Error> = Failure(new Error('Failed to match against $ident.'));
 
         switch type {
@@ -249,112 +249,70 @@ class StdHandler implements HtmlHandler {
         return result;
     }
 
-    public inline function get(type:Type, key:String, attributes:DynamicAccess<String>, follow:Bool = true/*, persist:Bool = true*/):Outcome<Array<ClassField>, Error> {
+    public static inline function get(type:Type, key:String, attributes:DynamicAccess<String>, follow:Bool = true/*, persist:Bool = true*/):Outcome<Array<ClassField>, Error> {
         return search(type, key, _Attribute, Get, attributes, follow);
     }
 
-    public inline function set(type:Type, key:String, attributes:DynamicAccess<String>, follow:Bool = true/*, persist:Bool = true*/):Outcome<Array<ClassField>, Error> {
+    public static inline function set(type:Type, key:String, attributes:DynamicAccess<String>, follow:Bool = true/*, persist:Bool = true*/):Outcome<Array<ClassField>, Error> {
         return search(type, key, _Attribute, Set, attributes, follow);
     }
 
-    public inline function has(type:Type, key:String, attributes:DynamicAccess<String>, follow:Bool = true):Outcome<Array<ClassField>, Error> {
+    public static inline function has(type:Type, key:String, attributes:DynamicAccess<String>, follow:Bool = true):Outcome<Array<ClassField>, Error> {
         return search(type, key, _Attribute, Has, attributes, follow);
     }
 
-    public function remove(type:Type, key:String, attributes:DynamicAccess<String>, follow:Bool = true/*, persist:Bool = true*/):Outcome<Array<ClassField>, Error> {
+    public static function remove(type:Type, key:String, attributes:DynamicAccess<String>, follow:Bool = true/*, persist:Bool = true*/):Outcome<Array<ClassField>, Error> {
         return search(type, key, _Attribute, Delete, attributes, follow);
     }
 
-    public function listen(type:Type, event:String, attributes:DynamicAccess<String>, follow:Bool = true):Outcome<Array<ClassField>, Error> {
+    public static function listen(type:Type, event:String, attributes:DynamicAccess<String>, follow:Bool = true):Outcome<Array<ClassField>, Error> {
         var result:Outcome<Array<ClassField>, Error> = Failure(new Error('Failed to match against $event.'));
         return result;
-    }
-
-}
-
-@:nullSafety(Strict)
-class HtmlInfo {
-
-    @:persistent public static var handlers:Array<HtmlHandler> = [new StdHandler()];
-
-    @:noCompletion public static function enhance():Void {
-        #if (eval || macro)
-        haxe.macro.Compiler.patchTypes("html.patch");
-        #else
-            #if !debug
-                #error "This method is only meant to be called from `.hxml` files."
-            #end
-        #end
     }
 
     public static function setAttribute(type:Type, name:String, attributes:DynamicAccess<String>, ?follow:Bool = true):Outcome<Array<ClassField>, Error> {
         var results = [];
 
-        for (handler in handlers) {
-            switch handler.set(type, name, attributes, follow) {
-                case Success(fields):
-                    for (field in fields) results.push(field);
+        switch set(type, name, attributes, follow) {
+            case Success(fields):
+                for (field in fields) results.push(field);
 
-                case Failure(failure):
-                    return Failure(failure);
+            case Failure(failure):
+                return Failure(failure);
 
-            }
         }
 
         return Success(results);
     }
 
-    public static function getAttribute(t:Type, name:String, attributes:DynamicAccess<String>, ?follow:Bool = true):Outcome<Array<ClassField>, Error> {
+    public static function getAttribute(type:Type, name:String, attributes:DynamicAccess<String>, ?follow:Bool = true):Outcome<Array<ClassField>, Error> {
         var results = [];
 
-        for (handler in handlers) {
-            switch handler.get(t, name, attributes, follow) {
-                case Success(fields):
-                    for (field in fields) results.push(field);
+        switch get(type, name, attributes, follow) {
+            case Success(fields):
+                for (field in fields) results.push(field);
 
-                case Failure(failure):
-                    return Failure(failure);
+            case Failure(failure):
+                return Failure(failure);
 
-            }
         }
 
         return Success(results);
     }
 
-    /*public static function defaultValues(t:Type, ?follow:Bool = false):Outcome<Array<ClassField>, Error> {
-        var result:Outcome<Array<ClassField>, Error> = Failure(new Error('Unable to find @$_Default on ${t.getID()}.'));
+    public static function defaultValues(type:Type, attributes:DynamicAccess<String>, ?follow:Bool = false):Outcome<Array<ClassField>, Error> {
+        var results = [];
 
-        switch t {
-            case TInst(_.get() => cls, _) if (cls.isExtern):
-                var emptyDefaults = [];
-                var defaults = [];
+        switch search(type, '_', _Attribute, All, attributes, follow) {
+            case Success(fields):
+                for (field in fields) results.push(field);
 
-                for (field in cls.fields.get()) {
-                    if (field.meta.has(_Default)) {
-                        var meta = field.meta.extract(_Default)[0];
+            case Failure(failure):
+                return Failure(failure);
 
-                        (meta.params.length == 0 ? emptyDefaults : defaults)
-                        .push( field );
-
-                    }
-                }
-
-                var array:Array<ClassField> = emptyDefaults.concat( defaults );
-
-                if (follow && cls.superClass != null) switch defaultValues( TInst(cls.superClass.t, cls.superClass.params), follow ) {
-                    case Success(v): array = array.concat( v );
-                    case _:
-                }
-
-                if (array.length > 0) result = Success(array);
-
-            case x:
-                #if debug
-                trace( x );
-                #end
         }
 
-        return result;
-    }*/
+        return Success(results);
+    }
 
 }
