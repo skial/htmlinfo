@@ -2,9 +2,9 @@
 // TODO `@:html.attr` is a poor description imo for (g/s)etting
 // a default value.
 
-@:html.default js.html.Node.nodeValue
-@:html.default js.html.Node.textContent
-@:html.default js.html.DOMElement.innerText
+@:html.attr("nodeValue", _, {}) js.html.Node.nodeValue
+@:html.attr("textContent", _, {}) js.html.Node.textContent
+@:html.attr("innerText", _, {}) js.html.DOMElement.innerText
 @:html.attr(_, get) js.html.DOMElement.getAttribute
 @:html.attr(_, set) js.html.DOMElement.setAttribute
 @:html.attr(_, has) js.html.DOMElement.hasAttribute
@@ -47,7 +47,6 @@
 
 // <a>
 @:html.tag("a") js.html.AnchorElement
-@:html.default js.html.AnchorElement.href
 @:html.attr("href") js.html.AnchorElement.href
 
 // <data>

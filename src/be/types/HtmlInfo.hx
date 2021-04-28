@@ -15,12 +15,47 @@ using be.types.HtmlInfo.ObjectFieldUtils;
 
 @:forward
 @:forwardStatics
+enum abstract HtmlInfoDefines(Defines) from Defines to Defines {
+    public var DebugHtml = 'debug_htmlinfo';
+    @:to public inline function asBool():Bool {
+		return haxe.macro.Context.defined(this);
+	}
+	@:op(A == B)
+	@:commutative
+	private static inline function equals(a:HtmlInfoDefines, b:Bool) {
+		return a.asBool() == b;
+	}
+	@:op(!A)
+	private static inline function negate(a:HtmlInfoDefines) {
+		return !a.asBool();
+	}
+	@:op(A != B)
+	@:commutative
+	private static inline function not(a:HtmlInfoDefines, b:Bool) {
+		return a.asBool() != b;
+	}
+	@:op(A && B)
+	@:commutative
+	private static inline function and(a:HtmlInfoDefines, b:Bool) {
+		return a.asBool() && b;
+	}
+}
+
+@:forward
+@:forwardStatics
+@:using(be.types.HtmlInfo.HtmlIDLUsings)
+enum abstract HtmlIDL(String) to String from String {}
+
+@:forward
+@:forwardStatics
 @:using(be.types.HtmlInfo.HtmlMetadataUsings)
 enum abstract HtmlMetadata(String) to String from String {
     // @:html.tag(string, bool) $type
     var _Tag = ':html.tag';
     // @:html.attr(string, ?access, ?attributes) $property
     var _Attribute = ':html.attr';
+    // @:html.default(?attributes) $property
+    //var _Default = ':html.default';
     // @:html.events(array<string>, ?attributes) $type
     var _Events = ':html.events';
 
@@ -42,6 +77,7 @@ enum abstract HtmlMetadata(String) to String from String {
             case _Tag: -1;
             case _Attribute: 2;
             case _Events: 1;
+            //case _Default: 0;
             case _: -1;
         }
     }
@@ -58,6 +94,7 @@ enum abstract HtmlMetadata(String) to String from String {
 
 @:forward
 @:forwardStatics
+@:using(be.types.HtmlInfo.HtmlActionUsings)
 enum abstract Action(String) to String from String {
     public var Get = 'get';
     public var Set = 'set';
@@ -86,6 +123,29 @@ class CacheUtils {
         return key;
     }
 
+    public static function touch(entry:MetadataEntry, type:Type, fieldName:String = ''):DynamicAccess<String> {
+        var index = (entry.name:HtmlMetadata).attr;
+        var expr = entry.params[index];
+        expr = expr == null ? macro null : expr;
+        var key = entry.cacheKey(type, fieldName);
+        return if (!CacheUtils.attributes.exists(key)) {
+            var obj = switch expr {
+                case _.expr => EObjectDecl(fields) if (fields.length > 0):
+                    fields.asDynamicAccess();
+    
+                case _:
+                    new DynamicAccess<String>();
+            }
+            CacheUtils.attributes.set(key, obj);
+            obj;
+
+        } else {
+            CacheUtils.attributes.get(key);
+
+        }
+        
+    }
+
 }
 
 @:nullSafety(Strict)
@@ -109,66 +169,202 @@ class ObjectFieldUtils {
 @:nullSafety(Strict)
 class HtmlMetadataUsings {
 
-    /**
-        Finds `self` in `entry` matching `ident` againsts `entry`
-    **/
-    public static function matches(self:HtmlMetadata, entry:MetadataEntry, ident:String, action:Action = All):Bool {
-        // None of the metadata entries are empty.
-        if (entry.params.length == 0) return false;
-        var name = self.ident > -1 ? entry.params[self.ident].toString().replace('"', '') : '/';
-        var fit = self.action > -1 ? entry.params[self.action].toString().replace('"', '') : '/';
-
+    public static inline function index(self:HtmlMetadata):Int {
         return switch self {
-            case _Attribute == entry.name => true if ((name == ident || name == All) && action == fit):
-                true;
-
-            case _Events == entry.name => true if (name.indexOf(ident) > -1 || name == All):
-                true;
-
-            case '_' if (entry.name.startsWith(':html.')):
-                (_Attribute.matches(entry, ident, action) || _Events.matches(entry, ident, action));
-
-            case _:
-                false;
+            case _Tag: 0;
+            case _Attribute: 1;
+            case _Events: 2;
         }
     }
 
-    public static function filter(self:HtmlMetadata, entry:MetadataEntry, attributes:DynamicAccess<String>, type:Type, ?field:ClassField):Bool {
-        switch self {
-            case _Attribute, _Events:
-                var expr = self.attr > -1 ? entry.params[self.attr] : null;
-                expr = expr == null ? macro null : expr;
-                var key = entry.cacheKey(type, field == null ? '' : field.name);
-                var attrs = if (CacheUtils.attributes.exists(key)) {
-                    CacheUtils.attributes.get(key);
+    public static inline function maxWeight(self:HtmlMetadata):Int {
+        return 3;
+    }
 
-                } else {
-                    var tmp = switch expr {
-                        case _.expr => EObjectDecl(fields) if (fields.length > 0):
-                            fields.asDynamicAccess();
+    /**
+        Finds `self` in `entry` matching `ident` againsts `entry`. Returning its weight.
+        Positive result is equal to `true`, negative result equal to `false`.
+    **/
+    public static function matches(self:HtmlMetadata, attributes:HtmlAttrs, entry:MetadataEntry, ident:HtmlIDL, type:Type, field:ClassField, action:Action = All):Int {
+        // None of the metadata entries can be empty.
+        if (entry.params.length == 0) return -1;
 
-                        case _:
-                            new DynamicAccess<String>();
-                    }
-                    CacheUtils.attributes.set(key, tmp);
-                    tmp;
+        var expected = self.index();
+        var actual = try {
+            (entry.name:HtmlMetadata).index();
+        } catch (e:Any) {
+            -1;
+        }
 
-                }
+        // Not a `HtmlMetadata` value.
+        if (actual == -1) return actual;
 
-                var val = '';
-                for (key => value in attrs) {
-                    if (!attributes.exists(key)) return false;
-                    val = attributes.get(key);
-                    if (val != value || val != All) return false;
-                }
+        var name = self.ident > -1 ? entry.params[self.ident].toString().replace('"', '') : '/Z/>z>/Z/';
+        var fit = self.action > -1 ? entry.params[self.action].toString().replace('"', '') : '/Z/>z>/Z/';
+        var attrs:HtmlAttrs = entry.touch(type, field.name);
 
-                return true;
+        if (Debug && DebugHtml) {
+            trace( '<checking meta ...>' );
+            trace( '⨽ action        : ' + action );
+            trace( '    ⨽ ==        : ' + (action == fit) );
+            trace( '⨽ on field      : ' + field.name );
+            trace( '<ident matches ...>' );
+            trace( '⨽ ident         : ' + ident );
+            trace( '⨽ meta          : ' + name );
+            trace( '    ⨽ ==        : ' + (name == ident || name == All) );
+            trace( '    ⨽ cmp       : ' + Reflect.compare(ident, name) );
+        }
 
-            case _:
-                return false;
+        var identWeight = self.maxWeight();
+        //identWeight = (expected - actual) + (Reflect.compare(ident, name));
+        identWeight = ident.matches(name);
+
+        var filterMax = attributes.maxWeight();
+        var attrMax = attrs.maxWeight();
+        var max = filterMax >= attrMax ? filterMax : attrMax;
+        var min = filterMax <= attrMax ? filterMax : attrMax;
+        var attrWeight = max - min;
+        for (key => value in attrs) {
+            attrWeight += attributes.matches(key, value);
+        }
+
+        // If somehow?! the value check againt Action isnt valid, -1
+        // is returned, force to obscene positive value.
+        // Dont use 0x7FFF,FFFF as the result would overflow on addition.
+        var actionWeight = action.matches(fit) & 0x3FFFFFFF;
+        var result = identWeight + attrWeight + actionWeight;
+
+        if (Debug && DebugHtml) {
+            trace( '<weights ...>' );
+            trace( '⨽ ident         : ' + identWeight );
+            trace( '⨽ attribute     : ' + attrWeight );
+            trace( '⨽ action        : ' + actionWeight );
+            trace( '⨽ total         : ' + result);
 
         }
 
+        return result;
+    }
+
+}
+
+@:nullSafety(Strict)
+class HtmlIDLUsings {
+
+    public static inline function maxWeight(self:HtmlIDL):Int {
+        return self.length;
+    }
+
+    public static function matches(self:HtmlIDL, value:String):Int {
+        if (Debug && DebugHtml) {
+            trace( '<checking idl names...>' );
+            trace( '⨽ self          : ' + self );
+            trace( '⨽ value         : ' + value );
+        }
+        // If catch-all, return early.
+        if (value == '_') return 0;
+        var cmp = Reflect.compare(self, value);
+
+        if (Debug && DebugHtml) {
+            trace( '⨽ cmp           : ' + cmp );
+        }
+        // Perfect match, return early.
+        if (cmp == 0) return cmp;
+        var max = self.length >= value.length ? self.length : value.length;
+        var min = self.length <= value.length ? self.length: value.length;
+
+        if (Debug && DebugHtml) {
+            trace( '⨽ max           : ' + max );
+            trace( '⨽ min           : ' + min );
+        }
+        return max - min;
+    }
+
+}
+
+@:nullSafety(Strict)
+class HtmlActionUsings {
+
+    public static inline function maxWeight(self:Action):Int {
+        return 5;
+    }
+
+    public static inline function index(self:Action):Int {
+        return switch self {
+            case Get: 0;
+            case Set: 1;
+            case Has: 2;
+            case Delete: 3;
+            case All: 4;
+        }
+    }
+
+    public static function matches(self:Action, value:String):Int {
+        // If catch-all, return early.
+        if (self == All) return 0;
+
+        var expected = self.index();
+        var actual = try {
+            (value:Action).index();
+        } catch (e:Any) {
+            -1;
+        }
+
+        if (Debug && DebugHtml) {
+            trace( '<action matches...>' );
+            trace( '⨽ self          : ' + self );
+            trace( '⨽ value         : ' + value );
+            trace( '⨽ expected      : ' + expected );
+            trace( '⨽ actual        : ' + actual );
+            trace( '⨽ returned      : ' + ((actual == -1) ? -1 : expected - actual) );
+        }
+
+        if (actual == -1) return actual;
+
+        return expected - actual;
+    }
+
+}
+
+@:forward
+@:forwardStatics
+@:using(be.types.HtmlInfo.HtmlAttrsUsing)
+abstract HtmlAttrs(DynamicAccess<String>) from DynamicAccess<String> to DynamicAccess<String> {}
+
+@:nullSafety(Strict)
+class HtmlAttrsUsing {
+
+    public static inline function maxWeight(self:HtmlAttrs):Int {
+        return self.keys().length * 2;
+    }
+
+    public static function matches(self:HtmlAttrs, key:String, value:String):Int {
+        var result = 2;
+
+        if (Debug && DebugHtml) {
+            trace( '<attr match...>' );
+            trace( '⨽ key       : ' + key );
+            trace( '    ⨽ exists: ' + self.exists(key) );
+            trace( '⨽ value     : ' + value );
+        }
+
+        if (self.exists(key)) {
+            result--;
+            result += Reflect.compare(  value, self.get(key) );
+
+            if (Debug && DebugHtml) {
+                trace( '    ⨽ ==    : ' + self.get(key) );
+                trace( '    ⨽ cmp   : ' + Reflect.compare( value, self.get(key) ) );
+            }
+
+            if (value == self.get(key)) {
+                result--;
+
+            }
+
+        }
+
+        return result;
     }
 
 }
@@ -186,12 +382,12 @@ class HtmlInfo {
         #end
     }
 
-    public static function search(type:Type, ident:String, metadata:HtmlMetadata, action:Action, attributes:DynamicAccess<String>, follow:Bool = true):Outcome<Array<ClassField>, Error> {
-        var result:Outcome<Array<ClassField>, Error> = Failure(new Error('Failed to match against $ident.'));
+    public static function search(type:Type, ident:String, metadata:HtmlMetadata, action:Action, attributes:HtmlAttrs, follow:Bool = true):Outcome<Array<MPair<ClassField, Int>>, Error> {
+        var result:Outcome<Array<MPair<ClassField, Int>>, Error> = Failure(new Error('Failed to match against $ident.'));
 
         switch type {
             case TInst(_.get() => cls, _) if (cls.isExtern):
-                if (Debug) {
+                if (Debug && DebugHtml) {
                     trace( '<checking type ...>' );
                     trace( '⨽ type      : ' + cls.name );
                     trace( '<for ...>' );
@@ -200,38 +396,42 @@ class HtmlInfo {
                     trace( '⨽ attrs     : ' + attributes );
 
                 }
-                var array:Array<ClassField> = [];
+                var array:Array<MPair<ClassField, Int>> = [];
 
                 for (field in cls.fields.get()) {
                     if (field.meta.has(metadata)) {
+                        var weight = 0;
                         var meta = field.meta.extract(metadata)[0];
-                        var aKeeper = metadata.matches(meta, ident, action);
+                        // If ident is wildcard, then it matches the property name.
+                        var metaWeight = metadata.matches(attributes, meta, (ident == All) ? field.name : ident, type, field, action);
+                        if (metaWeight == -1) continue;
 
-                        if (attributes.keys().length > 0) {
-                            aKeeper = aKeeper && metadata.filter(meta, attributes, type, field);
-                        }
+                        weight += metaWeight;
+                        var key = meta.cacheKey(type, field.name);
 
-                        if (Debug) {
+                        if (Debug && DebugHtml) {
                             trace( '<checking ...>' );
                             trace( '⨽ field     : ' + field.name );
-                            trace( '⨽ meta      : ' + meta.toString() );
                             trace( '<keep ...>' );
-                            trace( '⨽ bool      : ' + aKeeper );
+                            trace( '⨽ bool      : ' + metaWeight );
                         }
 
-                        if (aKeeper) array.push( field );
+                        array.push( new MPair(field, weight) );
 
                     }
 
                 }
 
                 if (follow && cls.superClass != null) {
-                    if (Debug) {
+                    if (Debug && DebugHtml) {
                         trace( '<checking parent ...>' );
                         trace( '⨽ name      : ' + cls.superClass.t.get().name );
                     }
-                    switch get(TInst(cls.superClass.t, cls.superClass.params), ident, attributes, follow) {
-                        case Success(values): for (value in values) array.push( value );
+                    switch search(TInst(cls.superClass.t, cls.superClass.params), ident, metadata, action, attributes, follow) {
+                        case Success(values): for (value in values) {
+                            value.b++;
+                            array.push( value );
+                        }
                         case _:
                     }
 
@@ -240,7 +440,7 @@ class HtmlInfo {
                 if (array.length > 0) result = Success(array);
 
             case x:
-                if (Debug) {
+                if (Debug && DebugHtml) {
                     trace( x );
                 }
 
@@ -249,20 +449,36 @@ class HtmlInfo {
         return result;
     }
 
+    public static function sort(outcome:Outcome<Array<MPair<ClassField, Int>>, Error>):Outcome<Array<ClassField>, Error> {
+        return switch outcome {
+            case Success(pairs):
+                haxe.ds.ArraySort.sort( pairs, function(a, b) {
+                    //return b.b - a.b;
+                    if (a.b == b.b) return 0;
+                    if (a.b > b.b) return 1;
+                    return -1;
+                } );
+                Success(pairs.map( p -> p.a ));
+
+            case Failure(failure):
+                Failure(failure);
+        }
+    }
+
     public static inline function get(type:Type, key:String, attributes:DynamicAccess<String>, follow:Bool = true/*, persist:Bool = true*/):Outcome<Array<ClassField>, Error> {
-        return search(type, key, _Attribute, Get, attributes, follow);
+        return sort( search(type, key, _Attribute, Get, attributes, follow) );
     }
 
     public static inline function set(type:Type, key:String, attributes:DynamicAccess<String>, follow:Bool = true/*, persist:Bool = true*/):Outcome<Array<ClassField>, Error> {
-        return search(type, key, _Attribute, Set, attributes, follow);
+        return sort( search(type, key, _Attribute, Set, attributes, follow) );
     }
 
     public static inline function has(type:Type, key:String, attributes:DynamicAccess<String>, follow:Bool = true):Outcome<Array<ClassField>, Error> {
-        return search(type, key, _Attribute, Has, attributes, follow);
+        return sort( search(type, key, _Attribute, Has, attributes, follow) );
     }
 
     public static function remove(type:Type, key:String, attributes:DynamicAccess<String>, follow:Bool = true/*, persist:Bool = true*/):Outcome<Array<ClassField>, Error> {
-        return search(type, key, _Attribute, Delete, attributes, follow);
+        return sort( search(type, key, _Attribute, Delete, attributes, follow) );
     }
 
     public static function listen(type:Type, event:String, attributes:DynamicAccess<String>, follow:Bool = true):Outcome<Array<ClassField>, Error> {
@@ -300,19 +516,8 @@ class HtmlInfo {
         return Success(results);
     }
 
-    public static function defaultValues(type:Type, attributes:DynamicAccess<String>, ?follow:Bool = false):Outcome<Array<ClassField>, Error> {
-        var results = [];
-
-        switch search(type, '_', _Attribute, All, attributes, follow) {
-            case Success(fields):
-                for (field in fields) results.push(field);
-
-            case Failure(failure):
-                return Failure(failure);
-
-        }
-
-        return Success(results);
+    public static inline function defaultValues(type:Type, attributes:DynamicAccess<String>, ?follow:Bool = true):Outcome<Array<ClassField>, Error> {
+        return sort( search(type, '_', _Attribute, All, attributes, follow));
     }
 
 }
