@@ -54,12 +54,27 @@ enum abstract HtmlMetadata(String) to String from String {
     var _Tag = ':html.tag';
     // @:html.attr(string, ?access, ?attributes) $property
     var _Attribute = ':html.attr';
-    // @:html.default(?attributes) $property
-    //var _Default = ':html.default';
     // @:html.events(array<string>, ?attributes) $type
     var _Events = ':html.events';
 
     //
+
+    public var max(get, never):Int;
+
+    private inline function get_max():Int {
+        return 3;
+    }
+
+    public var index(get, never):Int;
+
+    private inline function get_index():Int {
+        return switch this {
+            case _Tag: 0;
+            case _Attribute: 1;
+            case _Events: 2;
+            case _: -1;
+        }
+    }
 
     public var ident(get, never):Int;
 
@@ -77,7 +92,6 @@ enum abstract HtmlMetadata(String) to String from String {
             case _Tag: -1;
             case _Attribute: 2;
             case _Events: 1;
-            //case _Default: 0;
             case _: -1;
         }
     }
@@ -101,6 +115,27 @@ enum abstract Action(String) to String from String {
     public var Has = 'has';
     public var Delete = 'del';
     public var All = '_';
+
+    //
+
+    public var max(get, never):Int;
+
+    private inline function get_max():Int {
+        return 5;
+    }
+
+    public var index(get, never):Int;
+    
+    private inline function get_index():Int {
+        return switch this {
+            case Get: 0;
+            case Set: 1;
+            case Has: 2;
+            case Delete: 3;
+            case All: 4;
+            case _: -1;
+        }
+    }
 
     @:op(A == B) public static inline function equals(a:Action, b:String):Bool {
         return ((a:String) == All || b == All) || (a:String) == b;
@@ -169,18 +204,6 @@ class ObjectFieldUtils {
 @:nullSafety(Strict)
 class HtmlMetadataUsings {
 
-    public static inline function index(self:HtmlMetadata):Int {
-        return switch self {
-            case _Tag: 0;
-            case _Attribute: 1;
-            case _Events: 2;
-        }
-    }
-
-    public static inline function maxWeight(self:HtmlMetadata):Int {
-        return 3;
-    }
-
     /**
         Finds `self` in `entry` matching `ident` againsts `entry`. Returning its weight.
         Positive result is equal to `true`, negative result equal to `false`.
@@ -189,12 +212,8 @@ class HtmlMetadataUsings {
         // None of the metadata entries can be empty.
         if (entry.params.length == 0) return -1;
 
-        var expected = self.index();
-        var actual = try {
-            (entry.name:HtmlMetadata).index();
-        } catch (e:Any) {
-            -1;
-        }
+        var expected = self.index;
+        var actual = (entry.name:HtmlMetadata).index;
 
         // Not a `HtmlMetadata` value.
         if (actual == -1) return actual;
@@ -215,12 +234,12 @@ class HtmlMetadataUsings {
             trace( '    ⨽ cmp       : ' + Reflect.compare(ident, name) );
         }
 
-        var identWeight = self.maxWeight();
+        var identWeight = self.max;
         //identWeight = (expected - actual) + (Reflect.compare(ident, name));
         identWeight = ident.matches(name);
 
-        var filterMax = attributes.maxWeight();
-        var attrMax = attrs.maxWeight();
+        var filterMax = attributes.max;
+        var attrMax = attrs.max;
         var max = filterMax >= attrMax ? filterMax : attrMax;
         var min = filterMax <= attrMax ? filterMax : attrMax;
         var attrWeight = max - min;
@@ -250,10 +269,6 @@ class HtmlMetadataUsings {
 
 @:nullSafety(Strict)
 class HtmlIDLUsings {
-
-    public static inline function maxWeight(self:HtmlIDL):Int {
-        return self.length;
-    }
 
     public static function matches(self:HtmlIDL, value:String):Int {
         if (Debug && DebugHtml) {
@@ -285,30 +300,12 @@ class HtmlIDLUsings {
 @:nullSafety(Strict)
 class HtmlActionUsings {
 
-    public static inline function maxWeight(self:Action):Int {
-        return 5;
-    }
-
-    public static inline function index(self:Action):Int {
-        return switch self {
-            case Get: 0;
-            case Set: 1;
-            case Has: 2;
-            case Delete: 3;
-            case All: 4;
-        }
-    }
-
     public static function matches(self:Action, value:String):Int {
         // If catch-all, return early.
         if (self == All) return 0;
 
-        var expected = self.index();
-        var actual = try {
-            (value:Action).index();
-        } catch (e:Any) {
-            -1;
-        }
+        var expected = self.index;
+        var actual = (value:Action).index;
 
         if (Debug && DebugHtml) {
             trace( '<action matches...>' );
@@ -329,14 +326,18 @@ class HtmlActionUsings {
 @:forward
 @:forwardStatics
 @:using(be.types.HtmlInfo.HtmlAttrsUsing)
-abstract HtmlAttrs(DynamicAccess<String>) from DynamicAccess<String> to DynamicAccess<String> {}
+abstract HtmlAttrs(DynamicAccess<String>) from DynamicAccess<String> to DynamicAccess<String> {
+
+    public var max(get, never):Int;
+
+    private inline function get_max():Int {
+        return this.keys().length * 2;
+    }
+
+}
 
 @:nullSafety(Strict)
 class HtmlAttrsUsing {
-
-    public static inline function maxWeight(self:HtmlAttrs):Int {
-        return self.keys().length * 2;
-    }
 
     public static function matches(self:HtmlAttrs, key:String, value:String):Int {
         var result = 2;
