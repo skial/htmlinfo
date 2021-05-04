@@ -43,12 +43,37 @@ enum abstract HtmlInfoDefines(Defines) from Defines to Defines {
 
 @:forward
 @:forwardStatics
-@:using(be.types.HtmlInfo.HtmlIDLUsings)
-enum abstract HtmlIDL(String) to String from String {}
+enum abstract HtmlIDL(String) to String from String {
+
+    public function matches(value:String):Int {
+        if (Debug && DebugHtml) {
+            trace( '<checking idl names...>' );
+            trace( '⨽ self          : ' + this );
+            trace( '⨽ value         : ' + value );
+        }
+        // If catch-all, return early.
+        if (value == '_') return 0;
+        var cmp = Reflect.compare(this, value);
+
+        if (Debug && DebugHtml) {
+            trace( '⨽ cmp           : ' + cmp );
+        }
+        // Perfect match, return early.
+        if (cmp == 0) return cmp;
+        var max = this.length >= value.length ? this.length : value.length;
+        var min = this.length <= value.length ? this.length: value.length;
+
+        if (Debug && DebugHtml) {
+            trace( '⨽ max           : ' + max );
+            trace( '⨽ min           : ' + min );
+        }
+        return max - min;
+    }
+
+}
 
 @:forward
 @:forwardStatics
-@:using(be.types.HtmlInfo.HtmlMetadataUsings)
 enum abstract HtmlMetadata(String) to String from String {
     // @:html.tag(string, bool) $type
     var _Tag = ':html.tag';
@@ -104,11 +129,74 @@ enum abstract HtmlMetadata(String) to String from String {
         }
     }
 
+    //
+
+    /**
+        Finds `self` in `entry` matching `ident` againsts `entry`. Returning its weight.
+        Positive result is equal to `true`, negative result equal to `false`.
+    **/
+    public function matches(attributes:HtmlAttrs, entry:MetadataEntry, ident:HtmlIDL, type:Type, field:ClassField, action:Action = All):Int {
+        // None of the metadata entries can be empty.
+        if (entry.params.length == 0) return -1;
+
+        var self:HtmlMetadata = this;
+        var expected = self.index;
+        var actual = (entry.name:HtmlMetadata).index;
+
+        // Not a `HtmlMetadata` value.
+        if (actual == -1) return actual;
+
+        var name = self.ident > -1 ? entry.params[self.ident].toString().replace('"', '') : '/Z/>z>/Z/';
+        var fit = self.action > -1 ? entry.params[self.action].toString().replace('"', '') : '/Z/>z>/Z/';
+        var attrs:HtmlAttrs = entry.touch(type, field.name);
+
+        if (Debug && DebugHtml) {
+            trace( '<checking meta ...>' );
+            trace( '⨽ action        : ' + action );
+            trace( '    ⨽ ==        : ' + (action == fit) );
+            trace( '⨽ on field      : ' + field.name );
+            trace( '<ident matches ...>' );
+            trace( '⨽ ident         : ' + ident );
+            trace( '⨽ meta          : ' + name );
+            trace( '    ⨽ ==        : ' + (name == ident || name == All) );
+            trace( '    ⨽ cmp       : ' + Reflect.compare(ident, name) );
+        }
+
+        var identWeight = self.max;
+        //identWeight = (expected - actual) + (Reflect.compare(ident, name));
+        identWeight = ident.matches(name);
+
+        var filterMax = attributes.max;
+        var attrMax = attrs.max;
+        var max = filterMax >= attrMax ? filterMax : attrMax;
+        var min = filterMax <= attrMax ? filterMax : attrMax;
+        var attrWeight = max - min;
+        for (key => value in attrs) {
+            attrWeight += attributes.matches(key, value);
+        }
+
+        // If somehow?! the value check againt Action isnt valid, -1
+        // is returned, force to obscene positive value.
+        // Dont use 0x7FFF,FFFF as the result would overflow on addition.
+        var actionWeight = action.matches(fit) & 0x3FFFFFFF;
+        var result = identWeight + attrWeight + actionWeight;
+
+        if (Debug && DebugHtml) {
+            trace( '<weights ...>' );
+            trace( '⨽ ident         : ' + identWeight );
+            trace( '⨽ attribute     : ' + attrWeight );
+            trace( '⨽ action        : ' + actionWeight );
+            trace( '⨽ total         : ' + result);
+
+        }
+
+        return result;
+    }
+
 }
 
 @:forward
 @:forwardStatics
-@:using(be.types.HtmlInfo.HtmlActionUsings)
 enum abstract Action(String) to String from String {
     public var Get = 'get';
     public var Set = 'set';
@@ -135,6 +223,28 @@ enum abstract Action(String) to String from String {
             case All: 4;
             case _: -1;
         }
+    }
+
+    public function matches(value:String):Int {
+        var self:Action = this;
+        // If catch-all, return early.
+        if (self == All) return 0;
+
+        var expected = self.index;
+        var actual = (value:Action).index;
+
+        if (Debug && DebugHtml) {
+            trace( '<action matches...>' );
+            trace( '⨽ self          : ' + self );
+            trace( '⨽ value         : ' + value );
+            trace( '⨽ expected      : ' + expected );
+            trace( '⨽ actual        : ' + actual );
+            trace( '⨽ returned      : ' + ((actual == -1) ? -1 : expected - actual) );
+        }
+
+        if (actual == -1) return actual;
+
+        return expected - actual;
     }
 
     @:op(A == B) public static inline function equals(a:Action, b:String):Bool {
@@ -201,131 +311,8 @@ class ObjectFieldUtils {
 
 }
 
-@:nullSafety(Strict)
-class HtmlMetadataUsings {
-
-    /**
-        Finds `self` in `entry` matching `ident` againsts `entry`. Returning its weight.
-        Positive result is equal to `true`, negative result equal to `false`.
-    **/
-    public static function matches(self:HtmlMetadata, attributes:HtmlAttrs, entry:MetadataEntry, ident:HtmlIDL, type:Type, field:ClassField, action:Action = All):Int {
-        // None of the metadata entries can be empty.
-        if (entry.params.length == 0) return -1;
-
-        var expected = self.index;
-        var actual = (entry.name:HtmlMetadata).index;
-
-        // Not a `HtmlMetadata` value.
-        if (actual == -1) return actual;
-
-        var name = self.ident > -1 ? entry.params[self.ident].toString().replace('"', '') : '/Z/>z>/Z/';
-        var fit = self.action > -1 ? entry.params[self.action].toString().replace('"', '') : '/Z/>z>/Z/';
-        var attrs:HtmlAttrs = entry.touch(type, field.name);
-
-        if (Debug && DebugHtml) {
-            trace( '<checking meta ...>' );
-            trace( '⨽ action        : ' + action );
-            trace( '    ⨽ ==        : ' + (action == fit) );
-            trace( '⨽ on field      : ' + field.name );
-            trace( '<ident matches ...>' );
-            trace( '⨽ ident         : ' + ident );
-            trace( '⨽ meta          : ' + name );
-            trace( '    ⨽ ==        : ' + (name == ident || name == All) );
-            trace( '    ⨽ cmp       : ' + Reflect.compare(ident, name) );
-        }
-
-        var identWeight = self.max;
-        //identWeight = (expected - actual) + (Reflect.compare(ident, name));
-        identWeight = ident.matches(name);
-
-        var filterMax = attributes.max;
-        var attrMax = attrs.max;
-        var max = filterMax >= attrMax ? filterMax : attrMax;
-        var min = filterMax <= attrMax ? filterMax : attrMax;
-        var attrWeight = max - min;
-        for (key => value in attrs) {
-            attrWeight += attributes.matches(key, value);
-        }
-
-        // If somehow?! the value check againt Action isnt valid, -1
-        // is returned, force to obscene positive value.
-        // Dont use 0x7FFF,FFFF as the result would overflow on addition.
-        var actionWeight = action.matches(fit) & 0x3FFFFFFF;
-        var result = identWeight + attrWeight + actionWeight;
-
-        if (Debug && DebugHtml) {
-            trace( '<weights ...>' );
-            trace( '⨽ ident         : ' + identWeight );
-            trace( '⨽ attribute     : ' + attrWeight );
-            trace( '⨽ action        : ' + actionWeight );
-            trace( '⨽ total         : ' + result);
-
-        }
-
-        return result;
-    }
-
-}
-
-@:nullSafety(Strict)
-class HtmlIDLUsings {
-
-    public static function matches(self:HtmlIDL, value:String):Int {
-        if (Debug && DebugHtml) {
-            trace( '<checking idl names...>' );
-            trace( '⨽ self          : ' + self );
-            trace( '⨽ value         : ' + value );
-        }
-        // If catch-all, return early.
-        if (value == '_') return 0;
-        var cmp = Reflect.compare(self, value);
-
-        if (Debug && DebugHtml) {
-            trace( '⨽ cmp           : ' + cmp );
-        }
-        // Perfect match, return early.
-        if (cmp == 0) return cmp;
-        var max = self.length >= value.length ? self.length : value.length;
-        var min = self.length <= value.length ? self.length: value.length;
-
-        if (Debug && DebugHtml) {
-            trace( '⨽ max           : ' + max );
-            trace( '⨽ min           : ' + min );
-        }
-        return max - min;
-    }
-
-}
-
-@:nullSafety(Strict)
-class HtmlActionUsings {
-
-    public static function matches(self:Action, value:String):Int {
-        // If catch-all, return early.
-        if (self == All) return 0;
-
-        var expected = self.index;
-        var actual = (value:Action).index;
-
-        if (Debug && DebugHtml) {
-            trace( '<action matches...>' );
-            trace( '⨽ self          : ' + self );
-            trace( '⨽ value         : ' + value );
-            trace( '⨽ expected      : ' + expected );
-            trace( '⨽ actual        : ' + actual );
-            trace( '⨽ returned      : ' + ((actual == -1) ? -1 : expected - actual) );
-        }
-
-        if (actual == -1) return actual;
-
-        return expected - actual;
-    }
-
-}
-
 @:forward
 @:forwardStatics
-@:using(be.types.HtmlInfo.HtmlAttrsUsing)
 abstract HtmlAttrs(DynamicAccess<String>) from DynamicAccess<String> to DynamicAccess<String> {
 
     public var max(get, never):Int;
@@ -334,31 +321,26 @@ abstract HtmlAttrs(DynamicAccess<String>) from DynamicAccess<String> to DynamicA
         return this.keys().length * 2;
     }
 
-}
-
-@:nullSafety(Strict)
-class HtmlAttrsUsing {
-
-    public static function matches(self:HtmlAttrs, key:String, value:String):Int {
+    public function matches(key:String, value:String):Int {
         var result = 2;
 
         if (Debug && DebugHtml) {
             trace( '<attr match...>' );
             trace( '⨽ key       : ' + key );
-            trace( '    ⨽ exists: ' + self.exists(key) );
+            trace( '    ⨽ exists: ' + this.exists(key) );
             trace( '⨽ value     : ' + value );
         }
 
-        if (self.exists(key)) {
+        if (this.exists(key)) {
             result--;
-            result += Reflect.compare(  value, self.get(key) );
+            result += Reflect.compare(  value, this.get(key) );
 
             if (Debug && DebugHtml) {
-                trace( '    ⨽ ==    : ' + self.get(key) );
-                trace( '    ⨽ cmp   : ' + Reflect.compare( value, self.get(key) ) );
+                trace( '    ⨽ ==    : ' + this.get(key) );
+                trace( '    ⨽ cmp   : ' + Reflect.compare( value, this.get(key) ) );
             }
 
-            if (value == self.get(key)) {
+            if (value == this.get(key)) {
                 result--;
 
             }
