@@ -1,10 +1,12 @@
 package be.types;
 
+import haxe.ds.ArraySort;
 import haxe.ds.StringMap;
 import haxe.DynamicAccess;
 import haxe.macro.Type;
 import haxe.macro.Expr;
 import haxe.macro.Defines;
+import hx.strings.Strings;
 
 using StringTools;
 using tink.CoreApi;
@@ -53,13 +55,14 @@ enum abstract HtmlIDL(String) to String from String {
         }
         // If catch-all, return early.
         if (value == '_') return 0;
-        var cmp = Reflect.compare(this, value);
+        //var cmp = Reflect.compare(this, value);
+        var cmp = Strings.getLevenshteinDistance(this, value);
 
         if (Debug && DebugHtml) {
-            trace( '⨽ cmp           : ' + cmp );
+            trace( '⨽ diff          : ' + cmp );
         }
         // Perfect match, return early.
-        if (cmp == 0) return cmp;
+        /*if (cmp == 0) return cmp;
         var max = this.length >= value.length ? this.length : value.length;
         var min = this.length <= value.length ? this.length: value.length;
 
@@ -67,7 +70,8 @@ enum abstract HtmlIDL(String) to String from String {
             trace( '⨽ max           : ' + max );
             trace( '⨽ min           : ' + min );
         }
-        return max - min;
+        return max - min;*/
+        return cmp;
     }
 
 }
@@ -75,21 +79,25 @@ enum abstract HtmlIDL(String) to String from String {
 @:forward
 @:forwardStatics
 enum abstract HtmlMetadata(String) to String from String {
-    // @:html.tag(string, bool) $type
+    // @:html.tag(string, ?attributes) $type
     var _Tag = ':html.tag';
     // @:html.attr(string, ?access, ?attributes) $property
     var _Attribute = ':html.attr';
     // @:html.events(array<string>, ?attributes) $type
     var _Events = ':html.events';
+    // @:html.category(value:Category, ?attributes) $type
+    var _Category = ':html.category';
+    // @:html.kind(value:ElementKind) $type
+    var _Kind = ':html.kind';
 
     //
 
     public var max(get, never):Int;
 
     private inline function get_max():Int {
-        return 3;
+        return 5;
     }
-
+    
     public var index(get, never):Int;
 
     private inline function get_index():Int {
@@ -97,6 +105,8 @@ enum abstract HtmlMetadata(String) to String from String {
             case _Tag: 0;
             case _Attribute: 1;
             case _Events: 2;
+            case _Category: 3;
+            case _Kind: 4;
             case _: -1;
         }
     }
@@ -105,7 +115,7 @@ enum abstract HtmlMetadata(String) to String from String {
 
     private inline function get_ident():Int {
         return switch this {
-            case _Tag, _Attribute, _Events: 0;
+            case _Tag, _Attribute, _Events, _Category, _Kind: 0;
             case _: -1;
         }
     }
@@ -114,9 +124,9 @@ enum abstract HtmlMetadata(String) to String from String {
 
     private inline function get_attr():Int {
         return switch this {
-            case _Tag: -1;
+            //case _Tag: -1;
             case _Attribute: 2;
-            case _Events: 1;
+            case _Tag, _Events, _Category: 1;
             case _: -1;
         }
     }
@@ -151,21 +161,11 @@ enum abstract HtmlMetadata(String) to String from String {
         var attrs:HtmlAttrs = entry.touch(type, field.name);
 
         if (Debug && DebugHtml) {
-            trace( '<checking meta ...>' );
-            trace( '⨽ action        : ' + action );
-            trace( '    ⨽ ==        : ' + (action == fit) );
+            trace( '<checking information ...>' );
             trace( '⨽ on field      : ' + field.name );
-            trace( '<ident matches ...>' );
-            trace( '⨽ ident         : ' + ident );
-            trace( '⨽ meta          : ' + name );
-            trace( '    ⨽ ==        : ' + (name == ident || name == All) );
-            trace( '    ⨽ cmp       : ' + Reflect.compare(ident, name) );
         }
 
-        var identWeight = self.max;
-        //identWeight = (expected - actual) + (Reflect.compare(ident, name));
-        identWeight = ident.matches(name);
-
+        var identWeight = ident.matches(name);
         var filterMax = attributes.max;
         var attrMax = attrs.max;
         var max = filterMax >= attrMax ? filterMax : attrMax;
@@ -178,7 +178,8 @@ enum abstract HtmlMetadata(String) to String from String {
         // If somehow?! the value check againt Action isnt valid, -1
         // is returned, force to obscene positive value.
         // Dont use 0x7FFF,FFFF as the result would overflow on addition.
-        var actionWeight = action.matches(fit) & 0x3FFFFFFF;
+        var actionWeight = action.matches(fit);
+        if (actionWeight == -1) return -1;
         var result = identWeight + attrWeight + actionWeight;
 
         if (Debug && DebugHtml) {
@@ -197,19 +198,44 @@ enum abstract HtmlMetadata(String) to String from String {
 
 @:forward
 @:forwardStatics
-enum abstract Action(String) to String from String {
-    public var Get = 'get';
-    public var Set = 'set';
-    public var Has = 'has';
-    public var Delete = 'del';
-    public var All = '_';
+enum abstract Action(Int) to Int from Int {
+    public var Get = 0x67;      // g.code | 103 | 0b0110,0111
+    public var Set = 0x73;      // s.code | 115 | 0b0111,0011
+    public var Has = 0x68;      // h.code | 104 | 0b0110,1000
+    public var Delete = 0x64;   // d.code | 100 | 0b0110,0100
+    public var All = 0x5F;      // _.code | 95  | 0b0101,1111
+    public var Access = 0x21;   // !.code | 33  | 0b0010,0001
+
+    @:from private static inline function fromString(value:String):Action {
+        return switch value.toLowerCase() {
+            case 'get': Get;
+            case 'set': Set;
+            case 'has': Has;
+            case 'del': Delete;
+            case '_': All;
+            case '!': Access;
+            case _: Access;
+        }
+    }
+
+    public inline function toString():String {
+        return switch this {
+            case Get: 'get';
+            case Set: 'set';
+            case Has: 'has';
+            case Delete: 'del';
+            case All: '_';
+            case Access: '{g/s}et';
+            case _: '<null>';
+        }
+    }
 
     //
 
     public var max(get, never):Int;
 
     private inline function get_max():Int {
-        return 5;
+        return 6;
     }
 
     public var index(get, never):Int;
@@ -221,35 +247,68 @@ enum abstract Action(String) to String from String {
             case Has: 2;
             case Delete: 3;
             case All: 4;
+            case Access: 5;
             case _: -1;
         }
     }
 
     public function matches(value:String):Int {
         var self:Action = this;
+        var value:Action = value;
         // If catch-all, return early.
-        if (self == All) return 0;
-
-        var expected = self.index;
-        var actual = (value:Action).index;
-
+        /*if (self == All) return 0;
+*/
         if (Debug && DebugHtml) {
             trace( '<action matches...>' );
             trace( '⨽ self          : ' + self );
+            trace( '    ⨽ int       : ' + (self:Int) );
             trace( '⨽ value         : ' + value );
-            trace( '⨽ expected      : ' + expected );
-            trace( '⨽ actual        : ' + actual );
-            trace( '⨽ returned      : ' + ((actual == -1) ? -1 : expected - actual) );
+            trace( '    ⨽ int       : ' + (value:Int) );
+        }
+/*
+        return if ((self:Int) > (All:Int)) {
+            if (Debug && DebugHtml) {
+                trace( '... exact match ... ${this == value ? 0 : -1}' );
+            }
+            this == value ? 0 : -1;
+
+        } else {
+            if (Debug && DebugHtml) {
+                trace( '... {g/s}et match ... ${self & value == Access ? 0 : -1}' );
+            }
+            self & value == Access ? 0 : -1;
+            
+        }*/
+        var lhs = self;
+        var rhs = value;
+
+        if (Debug && DebugHtml) {
+            trace( 'lhs     : ' + (lhs:Int) );
+            trace( 'rhs     : ' + (rhs:Int) );
         }
 
-        if (actual == -1) return actual;
+        if (lhs == All) return 0;
+        if (rhs == All) return 0;
 
-        return expected - actual;
+        if ((lhs:Int) < (rhs:Int)) {
+            var tmp = lhs;
+            lhs = rhs;
+            rhs = tmp;
+        }
+
+        if ((lhs:Int) > (All:Int) && (rhs:Int) > (All:Int)) {
+            return lhs == rhs ? 0 : -1;
+        }
+
+        if (Debug && DebugHtml) {
+            trace( 'lhs     : ' + (lhs:Int) );
+            trace( 'rhs     : ' + (rhs:Int) );
+            trace( ' -      : ' + (((lhs:Int) & (rhs:Int)) ^ rhs ));
+        }
+
+        return (((lhs:Int) & (rhs:Int)) ^ rhs) == 0 ? 0 : -1;
     }
 
-    @:op(A == B) public static inline function equals(a:Action, b:String):Bool {
-        return ((a:String) == All || b == All) || (a:String) == b;
-    }
 }
 
 @:nullSafety(Strict)
@@ -303,7 +362,7 @@ class ObjectFieldUtils {
         var obj = new DynamicAccess<String>();
 
         for (field in fields) {
-            obj.set( field.field, field.expr.toString() );
+            obj.set( field.field, field.expr.toString().replace('"', '') );
         }
 
         return obj;
@@ -333,11 +392,13 @@ abstract HtmlAttrs(DynamicAccess<String>) from DynamicAccess<String> to DynamicA
 
         if (this.exists(key)) {
             result--;
-            result += Reflect.compare(  value, this.get(key) );
+            //result += (Reflect.compare( value, this.get(key) ) & 0x3FFFFFFF);
+            result += Strings.getLevenshteinDistance(value, this.get(key) );
 
             if (Debug && DebugHtml) {
                 trace( '    ⨽ ==    : ' + this.get(key) );
-                trace( '    ⨽ cmp   : ' + Reflect.compare( value, this.get(key) ) );
+                //trace( '    ⨽ cmp   : ' + (Reflect.compare( value, this.get(key) ) & 0x3FFFFFFF) );
+                trace( '    ⨽ diff : ' + Strings.getLevenshteinDistance(value, this.get(key) ) );
             }
 
             if (value == this.get(key)) {
@@ -365,6 +426,95 @@ class HtmlInfo {
         #end
     }
 
+    public static function info(type:Type, ?attributes:HtmlAttrs) {
+        if (attributes == null) attributes = {};
+        var category = be.html.Category.Unknown;
+        var kind = be.html.ElementKind.Normal;
+        var name:be.html.ElementName = cast 'unknown';
+        var attrs:HtmlAttrs = {};
+
+        var entries = [];
+        var metas = type.getMeta();
+
+        for (meta in metas) {
+            if (meta.has(_Tag)) {
+                entries = meta.extract(_Tag);
+
+                for (entry in entries) {
+                    switch entry.params[_Tag.ident] {
+                        case _.expr => EConst(CString(value, _)):
+                            name = cast value;
+
+                        case _:
+
+                    }
+
+                    if (entry.params[_Tag.attr] != null) {
+                        attrs = entry.touch(type);
+                    }
+    
+                }
+
+            }
+            
+            if (meta.has(_Category)) {
+                entries = meta.extract(_Category);
+
+                // TODO remove null check and handle attribute filter.
+                for (entry in entries) if (entry.params[_Category.attr] == null) {
+                   trace( entry );
+                   switch entry.params[_Category.ident] {
+                       case _.expr => EConst(CIdent(id)):
+                            switch id {
+                                case 'Metadata': category = be.html.Category.Metadata;
+                                case 'Flow': category = be.html.Category.Flow;
+                                case 'Sectioning': category = be.html.Category.Sectioning;
+                                case 'Heading': category = be.html.Category.Heading;
+                                case 'Phrasing': category = be.html.Category.Phrasing;
+                                case 'Embedded': category = be.html.Category.Embedded;
+                                case 'Interactive': category = be.html.Category.Interactive;
+                                case 'Palpable': category = be.html.Category.Palpable;
+                                case 'Scripted': category = be.html.Category.Scripted;
+                                case 'Root': category = be.html.Category.Root;
+                                case _:
+                            }
+                        
+                       case _:
+
+                   }
+    
+                }
+
+            }
+            
+            if (meta.has(_Kind)) {
+                entries = meta.extract(_Kind);
+
+                for (entry in entries) {
+                    switch entry.params[_Kind.ident] {
+                        case _.expr => EConst(CIdent(id)):
+                            switch id {
+                                case 'Empty': kind = be.html.ElementKind.Empty;
+                                case 'Template': kind = be.html.ElementKind.Template;
+                                case 'Raw': kind = be.html.ElementKind.Raw;
+                                case 'Escapable': kind = be.html.ElementKind.Escapable;
+                                case 'Foreign': kind = be.html.ElementKind.Foreign;
+                                case _:
+                            }
+
+                        case _:
+
+                    }
+    
+                }
+                
+            }
+
+        }
+
+        return { name: name, attributes: attrs, kind: kind, category: category };
+    }
+
     public static function search(type:Type, ident:String, metadata:HtmlMetadata, action:Action, attributes:HtmlAttrs, follow:Bool = true):Outcome<Array<MPair<ClassField, Int>>, Error> {
         var result:Outcome<Array<MPair<ClassField, Int>>, Error> = Failure(new Error('Failed to match against $ident.'));
 
@@ -383,23 +533,51 @@ class HtmlInfo {
 
                 for (field in cls.fields.get()) {
                     if (field.meta.has(metadata)) {
-                        var weight = 0;
-                        var meta = field.meta.extract(metadata)[0];
-                        // If ident is wildcard, then it matches the property name.
-                        var metaWeight = metadata.matches(attributes, meta, (ident == All) ? field.name : ident, type, field, action);
-                        if (metaWeight == -1) continue;
+                        var metas = field.meta.extract(metadata);
+                        var weights = [];
 
-                        weight += metaWeight;
-                        var key = meta.cacheKey(type, field.name);
+                        for (meta in metas) {
+                            var weight = 0;
+                            // If ident is wildcard, then it matches the property name.
+                            var metaWeight = metadata.matches(attributes, meta, (ident == All) ? field.name : ident, type, field, action);
+                            if (metaWeight == -1) {
+                                if (Debug && DebugHtml) {
+                                    trace( '<skipping ${field.name}...>');
+                                }
+                                continue;
+                            }
 
-                        if (Debug && DebugHtml) {
-                            trace( '<checking ...>' );
-                            trace( '⨽ field     : ' + field.name );
-                            trace( '<keep ...>' );
-                            trace( '⨽ bool      : ' + metaWeight );
+                            weight += metaWeight;
+                            //var key = meta.cacheKey(type, field.name);
+
+                            if (Debug && DebugHtml) {
+                                trace( '<checking ...>' );
+                                trace( '⨽ field     : ' + field.name );
+                                trace( '<keep ...>' );
+                                trace( '⨽ bool      : ' + metaWeight );
+                            }
+
+                            weights.push( new MPair(field, weight) );
+
                         }
 
-                        array.push( new MPair(field, weight) );
+                        if (Debug && DebugHtml) {
+                            for (w in weights) trace( w.a.name + ' : ' + w.b );
+                        }
+                        
+                        // Sort smallest...largest
+                        ArraySort.sort(weights, (a, b) -> {
+                            return a.b - b.b;
+                        } );
+
+                        if (Debug && DebugHtml) {
+                            for (w in weights) trace( w.a.name + ' : ' + w.b );
+                        }
+                        
+                        if (weights.length > 0) {
+                            // Pick the smallest weighted pair.
+                            array.push( weights[0] );
+                        }
 
                     }
 
@@ -436,11 +614,15 @@ class HtmlInfo {
         return switch outcome {
             case Success(pairs):
                 haxe.ds.ArraySort.sort( pairs, function(a, b) {
-                    //return b.b - a.b;
                     if (a.b == b.b) return 0;
                     if (a.b > b.b) return 1;
                     return -1;
                 } );
+                if (Debug && DebugHtml) {
+                    for (pair in pairs) {
+                        trace( pair.a.name + ' : ' + pair.b );
+                    }
+                }
                 Success(pairs.map( p -> p.a ));
 
             case Failure(failure):
@@ -500,7 +682,7 @@ class HtmlInfo {
     }
 
     public static inline function defaultValues(type:Type, attributes:DynamicAccess<String>, ?follow:Bool = true):Outcome<Array<ClassField>, Error> {
-        return sort( search(type, '_', _Attribute, All, attributes, follow));
+        return sort( search(type, '_', _Attribute, Access, attributes, follow));
     }
 
 }

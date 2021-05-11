@@ -2,9 +2,9 @@
 // TODO `@:html.attr` is a poor description imo for (g/s)etting
 // a default value.
 
-@:html.attr("nodeValue", _, {}) js.html.Node.nodeValue
-@:html.attr("textContent", _, {}) js.html.Node.textContent
-@:html.attr("innerText", _, {}) js.html.DOMElement.innerText
+@:html.attr("nodeValue", "!") js.html.Node.nodeValue
+@:html.attr("textContent", "!") js.html.Node.textContent
+@:html.attr("innerText", "!") js.html.DOMElement.innerText
 @:html.attr(_, get) js.html.DOMElement.getAttribute
 @:html.attr(_, set) js.html.DOMElement.setAttribute
 @:html.attr(_, has) js.html.DOMElement.hasAttribute
@@ -132,7 +132,13 @@
 @:html.tag("form") js.html.FormElement
 
 // <input>
-@:html.tag("input") js.html.InputElement
+// @see https://html.spec.whatwg.org/multipage/input.html#the-input-element
+@:html.tag("input", {type:"text"}) js.html.InputElement
+@:html.kind(Empty) js.html.InputElement
+@:html.category(Flow) js.html.InputElement
+@:html.category(Phrasing) js.html.InputElement
+@:html.category(Interactive, {type:"!hidden"}) js.html.InputElement
+@:html.category(Palpable, {type:"!hidden"}) js.html.InputElement
 
 @:html.attr("value", get) js.html.InputElement.value
 @:html.attr("value", set) js.html.InputElement.defaultValue

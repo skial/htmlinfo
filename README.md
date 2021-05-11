@@ -75,11 +75,13 @@ This library picks properties which update the HTML over faster, non-persisting 
 ### Metadata
 
 - > Namespace all values to @:html
-- `@:html.tag("$tagName", ?$selfClosing = false) $type`
+- `@:html.tag("$tagName", ?defaultAttributes) $type`
 - `@:html.events($idents, ?$attributes) $type`
 - `@:html.attr("$ident", ?$access, ?$attributes, ?$persistent) $type.$property`
   + `@:html.default(?$attributes, ?$persistent) $type.$property`
   + shortcut for `@:html.attr("$property", _, ?$attributes, ?$persistent) $type.$property`
+- `@:html.category(value, ?attributes) $type`
+- `@:html.kind(value) $type`
 
 + `$idents` are `String`
 + `$attributes` are `haxe.DynamicAccess<String>`

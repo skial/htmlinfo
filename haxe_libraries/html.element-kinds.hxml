@@ -1,0 +1,3 @@
+# @install: lix --silent download "gh://github.com/skial/html.element-kinds#cfee487c57be61212d293443fbe36e7e453c36b0" into html.element-kinds/0.0.1/github/cfee487c57be61212d293443fbe36e7e453c36b0
+-cp ${HAXE_LIBCACHE}/html.element-kinds/0.0.1/github/cfee487c57be61212d293443fbe36e7e453c36b0/src/
+-D html.element-kinds=0.0.1
