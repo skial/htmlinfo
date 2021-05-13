@@ -14,30 +14,43 @@
 
 // <blockquote>
 @:html.tag("blockquote") js.html.QuoteElement
+@:html.category(Flow) js.html.QuoteElement
+@:html.category(Sectioning) js.html.QuoteElement
+@:html.category(Palpable) js.html.QuoteElement
 
 // <div>
 @:html.tag("div") js.html.DivElement
+@:html.category(Flow) js.html.DivElement
+@:html.category(Palpable) js.html.DivElement
 
 // <dl>
 @:html.tag("dl") js.html.DListElement
+@:html.category(Flow) js.html.DListElement
 
 // <hr>
 @:html.tag("hr") js.html.HRElement
+@:html.category(Flow) js.html.HRElement
 
 // <li>
 @:html.tag("li") js.html.LIElement
 
 // <ol>
 @:html.tag("ol") js.html.OListElement
+@:html.category(Flow) js.html.OListElement
 
 // <p>
 @:html.tag("p") js.html.ParagraphElement
+@:html.category(Flow) js.html.ParagraphElement
+@:html.category(Palpable) js.html.ParagraphElement
 
 // <pre>
 @:html.tag("pre") js.html.PreElement
+@:html.category(Flow) js.html.PreElement
+@:html.category(Palpable) js.html.PreElement
 
 // <ul>
 @:html.tag("ul") js.html.UListElement
+@:html.category(Flow) js.html.UListElement
 
 // ----
 // Inline Text Content
@@ -45,19 +58,34 @@
 
 // <a>
 @:html.tag("a") js.html.AnchorElement
+@:html.category(Flow) js.html.AnchorElement
+@:html.category(Phrasing) js.html.AnchorElement
+@:html.category(Palpable) js.html.AnchorElement
 @:html.attr("href") js.html.AnchorElement.href
 
 // <data>
 @:html.tag("data") js.html.DataElement
+@:html.category(Flow) js.html.DataElement
+@:html.category(Phrasing) js.html.DataElement
+@:html.category(Palpable) js.html.DataElement
 
 // <q>
 @:html.tag("q") js.html.QuoteElement
+@:html.category(Flow) js.html.QuoteElement
+@:html.category(Phrasing) js.html.QuoteElement
+@:html.category(Palpable) js.html.QuoteElement
 
 // <span>
 @:html.tag("span") js.html.SpanElement
+@:html.category(Flow) js.html.SpanElement
+@:html.category(Phrasing) js.html.SpanElement
+@:html.category(Palpable) js.html.SpanElement
 
 // <time>
 @:html.tag("time") js.html.TimeElement
+@:html.category(Flow) js.html.TimeElement
+@:html.category(Phrasing) js.html.TimeElement
+@:html.category(Palpable) js.html.TimeElement
 
 // ----
 // Image and Multimedia Content
@@ -65,21 +93,38 @@
 
 // <area>
 @:html.tag("area") js.html.AreaElement
+@:html.category(Flow) js.html.AreaElement
+@:html.category(Phrasing) js.html.AreaElement
 
 // <audio>
 @:html.tag("audio") js.html.AudioElement
+@:html.category(Flow) js.html.AudioElement
+@:html.category(Phrasing) js.html.AudioElement
+@:html.category(Embedded) js.html.AudioElement
 
 // <img>
 @:html.tag("img") js.html.ImageElement
+@:html.category(Flow) js.html.ImageElement
+@:html.category(Phrasing) js.html.ImageElement
+@:html.category(Embedded) js.html.ImageElement
+@:html.category(Palpable) js.html.ImageElement
 
 // <map>
 @:html.tag("map") js.html.MapElement
+@:html.category(Flow) js.html.MapElement
+@:html.category(Phrasing) js.html.MapElement
+@:html.category(Palpable) js.html.MapElement
 
 // <track>
 @:html.tag("track") js.html.TrackElement
 
 // <video>
 @:html.tag("video") js.html.VideoElement
+@:html.category(Flow) js.html.VideoElement
+@:html.category(Phrasing) js.html.VideoElement
+@:html.category(Embedded) js.html.VideoElement
+@:html.category(Interactive, {controls:_}) js.html.VideoElement
+@:html.category(Palpable) js.html.VideoElement
 
 // ----
 // Embedded Content
@@ -87,18 +132,35 @@
 
 // <embed>
 @:html.tag("embed") js.html.EmbedElement
+@:html.category(Flow) js.html.EmbedElement
+@:html.category(Phrasing) js.html.EmbedElement
+@:html.category(Embedded) js.html.EmbedElement
+@:html.category(Interactive) js.html.EmbedElement
+@:html.category(Palpable) js.html.EmbedElement
 
 // <iframe>
 @:html.tag("iframe") js.html.IFrameElement
+@:html.category(Flow) js.html.IFrameElement
+@:html.category(Phrasing) js.html.IFrameElement
+@:html.category(Embedded) js.html.IFrameElement
+@:html.category(Interactive) js.html.IFrameElement
+@:html.category(Palpable) js.html.IFrameElement
 
 // <object>
 @:html.tag("object") js.html.ObjectElement
+@:html.category(Flow) js.html.ObjectElement
+@:html.category(Phrasing) js.html.ObjectElement
+@:html.category(Embedded) js.html.ObjectElement
+@:html.category(Palpable) js.html.ObjectElement
 
 // <param>
 @:html.tag("param") js.html.ParamElement
 
 // <picture>
 @:html.tag("picture") js.html.PictureElement
+@:html.category(Flow) js.html.PictureElement
+@:html.category(Phrasing) js.html.PictureElement
+@:html.category(Embedded) js.html.PictureElement
 
 // <source>
 @:html.tag("source") js.html.SourceElement
@@ -109,9 +171,16 @@
 
 // <cancas>
 @:html.tag("canvas") js.html.CanvasElement
+@:html.category(Flow) js.html.CanvasElement
+@:html.category(Phrasing) js.html.CanvasElement
+@:html.category(Embedded) js.html.CanvasElement
+@:html.category(Palpable) js.html.CanvasElement
 
 // <script>
 @:html.tag("script") js.html.ScriptElement
+@:html.category(Metadata) js.html.ScriptElement
+@:html.category(Flow) js.html.ScriptElement
+@:html.category(Phrasing) js.html.ScriptElement
 
 // ----
 // Form Content
