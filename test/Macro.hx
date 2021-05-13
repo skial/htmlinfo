@@ -12,11 +12,15 @@ using be.types.HtmlInfo;
 
 class Macro {
 
-    public static macro function defaults(element:Expr):Expr {
+    public static macro function access(element:Expr, ?obj:haxe.DynamicAccess<String>):Expr {
         var type = element.typeof().sure();
         var expr = element;
 
-        switch type.defaultValues({}, true) {
+        var info = HtmlInfo.info( type );
+        if (obj == null) obj = info.attributes;
+        if (obj.keys().length == 0) obj = info.attributes;
+
+        switch type.defaultValues(obj, true) {
             case Success(fields): 
                 if (Debug && DebugHtml) {
                     for (field in fields) {
@@ -35,12 +39,16 @@ class Macro {
         return expr;
     }
 
-    public static macro function read(element:Expr, field:String, ?expected:Type):Expr {
+    public static macro function read(element:Expr, field:String, ?obj:haxe.DynamicAccess<String>):Expr {
         if (Debug && DebugHtml) trace( '<read attr ${field}...>' );
         var type = element.typeof().sure();
         var expr = element;
+
+        var info = HtmlInfo.info( type );
+        if (obj == null) obj = info.attributes;
+        if (obj.keys().length == 0) obj = info.attributes;
         
-        switch type.getAttribute(field, {}, true) {
+        switch type.getAttribute(field, obj, true) {
             case Success(fields):
                 if (Debug && DebugHtml) {
                     trace( '<found fields ...>' );
@@ -61,12 +69,16 @@ class Macro {
         return expr;
     }
 
-    public static macro function write(element:Expr, field:String, ?expected:Type):Expr {
+    public static macro function write(element:Expr, field:String, ?obj:haxe.DynamicAccess<String>):Expr {
         if (Debug && DebugHtml) trace( '<write attr ${field}...>' );
         var type = element.typeof().sure();
         var expr = element;
+
+        var info = HtmlInfo.info( type );
+        if (obj == null) obj = info.attributes;
+        if (obj.keys().length == 0) obj = info.attributes;
         
-        switch type.setAttribute(field, {}, true) {
+        switch type.setAttribute(field, obj, true) {
             case Success(fields):
                 if (Debug && DebugHtml) {
                     trace( '<found fields ...>' );

@@ -81,7 +81,7 @@ enum abstract HtmlIDL(String) to String from String {
 enum abstract HtmlMetadata(String) to String from String {
     // @:html.tag(string, ?attributes) $type
     var _Tag = ':html.tag';
-    // @:html.attr(string, ?access, ?attributes) $property
+    // @:html.attr(string, ?access, ?attributes) $type.$property
     var _Attribute = ':html.attr';
     // @:html.events(array<string>, ?attributes) $type
     var _Events = ':html.events';
@@ -150,7 +150,7 @@ enum abstract HtmlMetadata(String) to String from String {
         if (entry.params.length == 0) return -1;
 
         var self:HtmlMetadata = this;
-        var expected = self.index;
+        //var expected = self.index;
         var actual = (entry.name:HtmlMetadata).index;
 
         // Not a `HtmlMetadata` value.
@@ -170,10 +170,13 @@ enum abstract HtmlMetadata(String) to String from String {
         var attrMax = attrs.max;
         var max = filterMax >= attrMax ? filterMax : attrMax;
         var min = filterMax <= attrMax ? filterMax : attrMax;
-        var attrWeight = max - min;
+        var attrWeight = 0;
+        
         for (key => value in attrs) {
             attrWeight += attributes.matches(key, value);
         }
+        
+        attrWeight *= max;
 
         // If somehow?! the value check againt Action isnt valid, -1
         // is returned, force to obscene positive value.
@@ -382,6 +385,7 @@ abstract HtmlAttrs(DynamicAccess<String>) from DynamicAccess<String> to DynamicA
 
     public function matches(key:String, value:String):Int {
         var result = 2;
+        var diff = 0;
 
         if (Debug && DebugHtml) {
             trace( '<attr match...>' );
@@ -392,23 +396,28 @@ abstract HtmlAttrs(DynamicAccess<String>) from DynamicAccess<String> to DynamicA
 
         if (this.exists(key)) {
             result--;
-            //result += (Reflect.compare( value, this.get(key) ) & 0x3FFFFFFF);
-            result += Strings.getLevenshteinDistance(value, this.get(key) );
+            diff += Strings.getLevenshteinDistance(value, this.get(key) );
 
             if (Debug && DebugHtml) {
                 trace( '    ⨽ ==    : ' + this.get(key) );
-                //trace( '    ⨽ cmp   : ' + (Reflect.compare( value, this.get(key) ) & 0x3FFFFFFF) );
                 trace( '    ⨽ diff : ' + Strings.getLevenshteinDistance(value, this.get(key) ) );
             }
 
             if (value == this.get(key)) {
                 result--;
+                
+
+            } else {
+                diff += result;
 
             }
 
+        } else {
+            diff += key.length;
+            
         }
 
-        return result;
+        return result + diff;
     }
 
 }
@@ -460,9 +469,9 @@ class HtmlInfo {
             if (meta.has(_Category)) {
                 entries = meta.extract(_Category);
 
+                // TODO sort categories based on category value. See category graph in spec.
                 // TODO remove null check and handle attribute filter.
                 for (entry in entries) if (entry.params[_Category.attr] == null) {
-                   trace( entry );
                    switch entry.params[_Category.ident] {
                        case _.expr => EConst(CIdent(id)):
                             switch id {

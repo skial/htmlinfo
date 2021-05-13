@@ -1,6 +1,4 @@
 // @see http://old.haxe.org/manual/swc#patch-files for format.
-// TODO `@:html.attr` is a poor description imo for (g/s)etting
-// a default value.
 
 @:html.attr("nodeValue", "!") js.html.Node.nodeValue
 @:html.attr("textContent", "!") js.html.Node.textContent
@@ -133,15 +131,13 @@
 
 // <input>
 // @see https://html.spec.whatwg.org/multipage/input.html#the-input-element
+// `{type:"text"}` sets the default attribute for `InputElement` if none if provided.
 @:html.tag("input", {type:"text"}) js.html.InputElement
 @:html.kind(Empty) js.html.InputElement
 @:html.category(Flow) js.html.InputElement
 @:html.category(Phrasing) js.html.InputElement
 @:html.category(Interactive, {type:"!hidden"}) js.html.InputElement
 @:html.category(Palpable, {type:"!hidden"}) js.html.InputElement
-
-@:html.attr("value", get) js.html.InputElement.value
-@:html.attr("value", set) js.html.InputElement.defaultValue
 
 // <input type="text">
 // <input> elements without a `type` attribute default to `type="text"`
