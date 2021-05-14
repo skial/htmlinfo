@@ -29,6 +29,7 @@
 
 // <hr>
 @:html.tag("hr") js.html.HRElement
+@:html.kind(Empty) js.html.HRElement
 @:html.category(Flow) js.html.HRElement
 
 // <li>
@@ -93,6 +94,7 @@
 
 // <area>
 @:html.tag("area") js.html.AreaElement
+@:html.kind(Empty) js.html.AreaElement
 @:html.category(Flow) js.html.AreaElement
 @:html.category(Phrasing) js.html.AreaElement
 
@@ -104,6 +106,7 @@
 
 // <img>
 @:html.tag("img") js.html.ImageElement
+@:html.kind(Empty) js.html.ImageElement
 @:html.category(Flow) js.html.ImageElement
 @:html.category(Phrasing) js.html.ImageElement
 @:html.category(Embedded) js.html.ImageElement
@@ -117,6 +120,7 @@
 
 // <track>
 @:html.tag("track") js.html.TrackElement
+@:html.kind(Empty) js.html.TrackElement
 
 // <video>
 @:html.tag("video") js.html.VideoElement
@@ -132,6 +136,7 @@
 
 // <embed>
 @:html.tag("embed") js.html.EmbedElement
+@:html.kind(Empty) js.html.EmbedElement
 @:html.category(Flow) js.html.EmbedElement
 @:html.category(Phrasing) js.html.EmbedElement
 @:html.category(Embedded) js.html.EmbedElement
@@ -155,6 +160,7 @@
 
 // <param>
 @:html.tag("param") js.html.ParamElement
+@:html.kind(Empty) js.html.ParamElement
 
 // <picture>
 @:html.tag("picture") js.html.PictureElement
@@ -164,6 +170,7 @@
 
 // <source>
 @:html.tag("source") js.html.SourceElement
+@:html.kind(Empty) js.html.SourceElement
 
 // ----
 // Scripting Content
@@ -178,6 +185,7 @@
 
 // <script>
 @:html.tag("script") js.html.ScriptElement
+@:html.kind(Raw) js.html.ScriptElement
 @:html.category(Metadata) js.html.ScriptElement
 @:html.category(Flow) js.html.ScriptElement
 @:html.category(Phrasing) js.html.ScriptElement
@@ -188,15 +196,26 @@
 
 // <button>
 @:html.tag("button") js.html.ButtonElement
+@:html.category(Flow) js.html.ButtonElement
+@:html.category(Phrasing) js.html.ButtonElement
+@:html.category(Interactive) js.html.ButtonElement
+@:html.category(Palpable) js.html.ButtonElement
 
 // <datalist>
 @:html.tag("datalist") js.html.DataListElement
+@:html.category(Flow) js.html.DataListElement
+@:html.category(Phrasing) js.html.DataListElement
 
 // <fieldset>
 @:html.tag("fieldset") js.html.FieldSetElement
+@:html.category(Flow) js.html.FieldSetElement
+@:html.category(Sectioning) js.html.FieldSetElement
+@:html.category(Palpable) js.html.FieldSetElement
 
 // <form>
 @:html.tag("form") js.html.FormElement
+@:html.category(Flow) js.html.FormElement
+@:html.category(Palpable) js.html.FormElement
 
 // <input>
 // @see https://html.spec.whatwg.org/multipage/input.html#the-input-element
@@ -360,12 +379,19 @@
 
 // <label>
 @:html.tag("label") js.html.LabelElement
+@:html.category(Flow) js.html.LabelElement
+@:html.category(Phrasing) js.html.LabelElement
+@:html.category(Interactive) js.html.LabelElement
+@:html.category(Palpable) js.html.LabelElement
 
 // <legend>
 @:html.tag("legend") js.html.LegendElement
 
 // <meter>
 @:html.tag("meter") js.html.MeterElement
+@:html.category(Flow) js.html.MeterElement
+@:html.category(Phrasing) js.html.MeterElement
+@:html.category(Palpable) js.html.MeterElement
 
 // <optgroup>
 @:html.tag("optgroup") js.html.OptGroupElement
@@ -375,12 +401,27 @@
 
 // <output>
 @:html.tag("output") js.html.OutputElement
+@:html.category(Flow) js.html.OutputElement
+@:html.category(Phrasing) js.html.OutputElement
+@:html.category(Palpable) js.html.OutputElement
 
 // <progress>
 @:html.tag("progress") js.html.ProgressElement
+@:html.category(Flow) js.html.ProgressElement
+@:html.category(Phrasing) js.html.ProgressElement
+@:html.category(Palpable) js.html.ProgressElement
 
 // <select>
 @:html.tag("select") js.html.SelectElement
+@:html.category(Flow) js.html.SelectElement
+@:html.category(Phrasing) js.html.SelectElement
+@:html.category(Interactive) js.html.SelectElement
+@:html.category(Palpable) js.html.SelectElement
 
 // <textarea>
 @:html.tag("textarea") js.html.TextAreaElement
+@:html.kind(Escapable) js.html.TextAreaElement
+@:html.category(Flow) js.html.TextAreaElement
+@:html.category(Phrasing) js.html.TextAreaElement
+@:html.category(Interactive) js.html.TextAreaElement
+@:html.category(Palpable) js.html.TextAreaElement
