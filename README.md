@@ -88,6 +88,7 @@ This library picks properties which update the HTML over faster, non-persisting 
 + `$access` is an enum:
   + `set`
   + `get`
+  + `!` matches either `{s/g}et`
   + `_` matching all other values.
 
 ### Resolution
@@ -123,7 +124,7 @@ class HtmlInfo {
     function setAttribute(type:Type, key:String, attributes = {}, follow = true, persist = true):Outcome<SetterFieldsUtils, Error>;
     function hasAttribute(type:Type, key:String, attributes = {}, follow = true):Outcome<{runtime:CheckerFields, comptime:Null<Bool>}, Error>;
     function removeAttribute(type:Type, key:String, attributes = {}, follow = true, persist = true):Outcome<RemoverFields, Error>;
-    function addEventListener(type:Type, event:String, attributes = {}):Outcome<EventListenerFields, Error>;
+    //function addEventListener(type:Type, event:String, attributes = {}):Outcome<EventListenerFields, Error>;
 
 }
 

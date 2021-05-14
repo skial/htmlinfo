@@ -440,6 +440,7 @@ class HtmlInfo {
         var category = be.html.Category.Unknown;
         var kind = be.html.ElementKind.Normal;
         var name:be.html.ElementName = cast 'unknown';
+        var events:Array<String> = [];
         var attrs:HtmlAttrs = {};
 
         var entries = [];
@@ -462,6 +463,23 @@ class HtmlInfo {
                         attrs = entry.touch(type);
                     }
     
+                }
+
+            }
+
+            if (meta.has(_Events)) {
+                entries = meta.extract(_Events);
+
+                for (entry in entries) switch entry.params[_Events.ident] {
+                    case _.expr => EArrayDecl(es):
+                        events = es.map( e -> switch e {
+                            case _.expr => EConst(CString(v)): v;
+                            case _: '';
+                        } );
+
+                    case x:
+                        if (Debug) trace( x );
+
                 }
 
             }
@@ -521,7 +539,7 @@ class HtmlInfo {
 
         }
 
-        return { name: name, attributes: attrs, kind: kind, category: category };
+        return { name: name, events: events, attributes: attrs, kind: kind, category: category };
     }
 
     public static function search(type:Type, ident:String, metadata:HtmlMetadata, action:Action, attributes:HtmlAttrs, follow:Bool = true):Outcome<Array<MPair<ClassField, Int>>, Error> {
@@ -655,10 +673,10 @@ class HtmlInfo {
         return sort( search(type, key, _Attribute, Delete, attributes, follow) );
     }
 
-    public static function listen(type:Type, event:String, attributes:DynamicAccess<String>, follow:Bool = true):Outcome<Array<ClassField>, Error> {
+    /*public static function listen(type:Type, event:String, attributes:DynamicAccess<String>, follow:Bool = true):Outcome<Array<ClassField>, Error> {
         var result:Outcome<Array<ClassField>, Error> = Failure(new Error('Failed to match against $event.'));
         return result;
-    }
+    }*/
 
     public static function setAttribute(type:Type, name:String, attributes:DynamicAccess<String>, ?follow:Bool = true):Outcome<Array<ClassField>, Error> {
         var results = [];
@@ -679,6 +697,36 @@ class HtmlInfo {
         var results = [];
 
         switch get(type, name, attributes, follow) {
+            case Success(fields):
+                for (field in fields) results.push(field);
+
+            case Failure(failure):
+                return Failure(failure);
+
+        }
+
+        return Success(results);
+    }
+
+    public static function hasAttribute(type:Type, name:String, attributes:DynamicAccess<String>, ?follow:Bool = true):Outcome<Array<ClassField>, Error> {
+        var results = [];
+
+        switch has(type, name, attributes, follow) {
+            case Success(fields):
+                for (field in fields) results.push(field);
+
+            case Failure(failure):
+                return Failure(failure);
+
+        }
+
+        return Success(results);
+    }
+
+    public static function removeAttribute(type:Type, name:String, attributes:DynamicAccess<String>, ?follow:Bool = true):Outcome<Array<ClassField>, Error> {
+        var results = [];
+
+        switch remove(type, name, attributes, follow) {
             case Success(fields):
                 for (field in fields) results.push(field);
 

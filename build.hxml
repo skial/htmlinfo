@@ -12,7 +12,7 @@
 --macro be.types.HtmlInfo.enhance()
 
 -debug
--D debug-htmlinfo
+#-D debug-htmlinfo
 
 -dce full
 --main Main
