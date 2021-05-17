@@ -375,6 +375,7 @@ class ObjectFieldUtils {
 
 @:forward
 @:forwardStatics
+@:forward.new
 abstract HtmlAttrs(DynamicAccess<String>) from DynamicAccess<String> to DynamicAccess<String> {
 
     public var max(get, never):Int;
@@ -436,12 +437,12 @@ class HtmlInfo {
     }
 
     public static function info(type:Type, ?attributes:HtmlAttrs) {
-        if (attributes == null) attributes = {};
+        if (attributes == null) attributes = new HtmlAttrs();
         var category = be.html.Category.Unknown;
         var kind = be.html.ElementKind.Normal;
         var name:be.html.ElementName = cast 'unknown';
         var events:Array<String> = [];
-        var attrs:HtmlAttrs = {};
+        var attrs:HtmlAttrs = new HtmlAttrs();
 
         var entries = [];
         var metas = type.getMeta();
