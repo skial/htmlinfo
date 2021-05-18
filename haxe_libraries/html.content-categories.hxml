@@ -1,0 +1,3 @@
+# @install: lix --silent download "gh://github.com/skial/html.content-categories#32939a0bc12b1f29a3731b09439a579ef2b27a31" into html.content-categories/0.0.1/github/32939a0bc12b1f29a3731b09439a579ef2b27a31
+-cp ${HAXE_LIBCACHE}/html.content-categories/0.0.1/github/32939a0bc12b1f29a3731b09439a579ef2b27a31/src/
+-D html.content-categories=0.0.1

@@ -1,0 +1,3 @@
+# @install: lix --silent download "gh://github.com/skial/html.element-names#c49a731964915eaa468f977c2edb7485b350d5cc" into html.element-names/0.0.1/github/c49a731964915eaa468f977c2edb7485b350d5cc
+-cp ${HAXE_LIBCACHE}/html.element-names/0.0.1/github/c49a731964915eaa468f977c2edb7485b350d5cc/src/
+-D html.element-names=0.0.1

@@ -2,10 +2,18 @@
 -cp test
 
 -lib tink_macro
+-lib haxe-strings
+-lib haxe.macro.Defines
+-lib html.element-kinds
+-lib html.element-names
+-lib html.content-categories
+-lib resolve
 
---macro be.types.Html.enhance()
+--macro be.types.HtmlInfo.enhance()
 
 -debug
+#-D debug-htmlinfo
+
 -dce full
 --main Main
 

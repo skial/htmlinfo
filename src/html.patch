@@ -1,12 +1,12 @@
 // @see http://old.haxe.org/manual/swc#patch-files for format.
-// TODO `@:html.attr` is a poor description imo for (g/s)etting
-// a default value.
 
-@:default js.html.Node.nodeValue
-@:default js.html.Node.textContent
-@:default js.html.DOMElement.innerText
+@:html.attr("nodeValue", "!") js.html.Node.nodeValue
+@:html.attr("textContent", "!") js.html.Node.textContent
+@:html.attr("innerText", "!") js.html.DOMElement.innerText
 @:html.attr(_, get) js.html.DOMElement.getAttribute
 @:html.attr(_, set) js.html.DOMElement.setAttribute
+@:html.attr(_, has) js.html.DOMElement.hasAttribute
+@:html.attr(_, del) js.html.DOMElement.removeAttribute
 
 // ----
 // Text Content
@@ -14,30 +14,44 @@
 
 // <blockquote>
 @:html.tag("blockquote") js.html.QuoteElement
+@:html.category(Flow) js.html.QuoteElement
+@:html.category(Sectioning) js.html.QuoteElement
+@:html.category(Palpable) js.html.QuoteElement
 
 // <div>
 @:html.tag("div") js.html.DivElement
+@:html.category(Flow) js.html.DivElement
+@:html.category(Palpable) js.html.DivElement
 
 // <dl>
 @:html.tag("dl") js.html.DListElement
+@:html.category(Flow) js.html.DListElement
 
 // <hr>
 @:html.tag("hr") js.html.HRElement
+@:html.kind(Empty) js.html.HRElement
+@:html.category(Flow) js.html.HRElement
 
 // <li>
 @:html.tag("li") js.html.LIElement
 
 // <ol>
 @:html.tag("ol") js.html.OListElement
+@:html.category(Flow) js.html.OListElement
 
 // <p>
 @:html.tag("p") js.html.ParagraphElement
+@:html.category(Flow) js.html.ParagraphElement
+@:html.category(Palpable) js.html.ParagraphElement
 
 // <pre>
 @:html.tag("pre") js.html.PreElement
+@:html.category(Flow) js.html.PreElement
+@:html.category(Palpable) js.html.PreElement
 
 // <ul>
 @:html.tag("ul") js.html.UListElement
+@:html.category(Flow) js.html.UListElement
 
 // ----
 // Inline Text Content
@@ -45,20 +59,34 @@
 
 // <a>
 @:html.tag("a") js.html.AnchorElement
-@:default js.html.AnchorElement.href
+@:html.category(Flow) js.html.AnchorElement
+@:html.category(Phrasing) js.html.AnchorElement
+@:html.category(Palpable) js.html.AnchorElement
 @:html.attr("href") js.html.AnchorElement.href
 
 // <data>
 @:html.tag("data") js.html.DataElement
+@:html.category(Flow) js.html.DataElement
+@:html.category(Phrasing) js.html.DataElement
+@:html.category(Palpable) js.html.DataElement
 
 // <q>
 @:html.tag("q") js.html.QuoteElement
+@:html.category(Flow) js.html.QuoteElement
+@:html.category(Phrasing) js.html.QuoteElement
+@:html.category(Palpable) js.html.QuoteElement
 
 // <span>
 @:html.tag("span") js.html.SpanElement
+@:html.category(Flow) js.html.SpanElement
+@:html.category(Phrasing) js.html.SpanElement
+@:html.category(Palpable) js.html.SpanElement
 
 // <time>
 @:html.tag("time") js.html.TimeElement
+@:html.category(Flow) js.html.TimeElement
+@:html.category(Phrasing) js.html.TimeElement
+@:html.category(Palpable) js.html.TimeElement
 
 // ----
 // Image and Multimedia Content
@@ -66,21 +94,41 @@
 
 // <area>
 @:html.tag("area") js.html.AreaElement
+@:html.kind(Empty) js.html.AreaElement
+@:html.category(Flow) js.html.AreaElement
+@:html.category(Phrasing) js.html.AreaElement
 
 // <audio>
 @:html.tag("audio") js.html.AudioElement
+@:html.category(Flow) js.html.AudioElement
+@:html.category(Phrasing) js.html.AudioElement
+@:html.category(Embedded) js.html.AudioElement
 
 // <img>
 @:html.tag("img") js.html.ImageElement
+@:html.kind(Empty) js.html.ImageElement
+@:html.category(Flow) js.html.ImageElement
+@:html.category(Phrasing) js.html.ImageElement
+@:html.category(Embedded) js.html.ImageElement
+@:html.category(Palpable) js.html.ImageElement
 
 // <map>
 @:html.tag("map") js.html.MapElement
+@:html.category(Flow) js.html.MapElement
+@:html.category(Phrasing) js.html.MapElement
+@:html.category(Palpable) js.html.MapElement
 
 // <track>
 @:html.tag("track") js.html.TrackElement
+@:html.kind(Empty) js.html.TrackElement
 
 // <video>
 @:html.tag("video") js.html.VideoElement
+@:html.category(Flow) js.html.VideoElement
+@:html.category(Phrasing) js.html.VideoElement
+@:html.category(Embedded) js.html.VideoElement
+@:html.category(Interactive, {controls:_}) js.html.VideoElement
+@:html.category(Palpable) js.html.VideoElement
 
 // ----
 // Embedded Content
@@ -88,21 +136,41 @@
 
 // <embed>
 @:html.tag("embed") js.html.EmbedElement
+@:html.kind(Empty) js.html.EmbedElement
+@:html.category(Flow) js.html.EmbedElement
+@:html.category(Phrasing) js.html.EmbedElement
+@:html.category(Embedded) js.html.EmbedElement
+@:html.category(Interactive) js.html.EmbedElement
+@:html.category(Palpable) js.html.EmbedElement
 
 // <iframe>
 @:html.tag("iframe") js.html.IFrameElement
+@:html.category(Flow) js.html.IFrameElement
+@:html.category(Phrasing) js.html.IFrameElement
+@:html.category(Embedded) js.html.IFrameElement
+@:html.category(Interactive) js.html.IFrameElement
+@:html.category(Palpable) js.html.IFrameElement
 
 // <object>
 @:html.tag("object") js.html.ObjectElement
+@:html.category(Flow) js.html.ObjectElement
+@:html.category(Phrasing) js.html.ObjectElement
+@:html.category(Embedded) js.html.ObjectElement
+@:html.category(Palpable) js.html.ObjectElement
 
 // <param>
 @:html.tag("param") js.html.ParamElement
+@:html.kind(Empty) js.html.ParamElement
 
 // <picture>
 @:html.tag("picture") js.html.PictureElement
+@:html.category(Flow) js.html.PictureElement
+@:html.category(Phrasing) js.html.PictureElement
+@:html.category(Embedded) js.html.PictureElement
 
 // <source>
 @:html.tag("source") js.html.SourceElement
+@:html.kind(Empty) js.html.SourceElement
 
 // ----
 // Scripting Content
@@ -110,9 +178,17 @@
 
 // <cancas>
 @:html.tag("canvas") js.html.CanvasElement
+@:html.category(Flow) js.html.CanvasElement
+@:html.category(Phrasing) js.html.CanvasElement
+@:html.category(Embedded) js.html.CanvasElement
+@:html.category(Palpable) js.html.CanvasElement
 
 // <script>
 @:html.tag("script") js.html.ScriptElement
+@:html.kind(Raw) js.html.ScriptElement
+@:html.category(Metadata) js.html.ScriptElement
+@:html.category(Flow) js.html.ScriptElement
+@:html.category(Phrasing) js.html.ScriptElement
 
 // ----
 // Form Content
@@ -120,44 +196,202 @@
 
 // <button>
 @:html.tag("button") js.html.ButtonElement
+@:html.category(Flow) js.html.ButtonElement
+@:html.category(Phrasing) js.html.ButtonElement
+@:html.category(Interactive) js.html.ButtonElement
+@:html.category(Palpable) js.html.ButtonElement
 
 // <datalist>
 @:html.tag("datalist") js.html.DataListElement
+@:html.category(Flow) js.html.DataListElement
+@:html.category(Phrasing) js.html.DataListElement
 
 // <fieldset>
 @:html.tag("fieldset") js.html.FieldSetElement
+@:html.category(Flow) js.html.FieldSetElement
+@:html.category(Sectioning) js.html.FieldSetElement
+@:html.category(Palpable) js.html.FieldSetElement
 
 // <form>
 @:html.tag("form") js.html.FormElement
+@:html.category(Flow) js.html.FormElement
+@:html.category(Palpable) js.html.FormElement
 
 // <input>
-@:html.tag("input") js.html.InputElement
-@:events(["change", "input"]) js.html.InputElement
-@:events({type:"button"}, ["click"]) js.html.InputElement
-@:events({type:"hidden"}, []) js.html.InputElement
-@:events({type:"image"}, []) js.html.InputElement
-@:events({type:"reset"}, ["click"]) js.html.InputElement
-@:events({type:"submit"}, ["click"]) js.html.InputElement
+// @see https://html.spec.whatwg.org/multipage/input.html#the-input-element
+// `{type:"text"}` sets the default attribute for `InputElement` if none if provided.
+@:html.tag("input", {type:"text"}) js.html.InputElement
+@:html.kind(Empty) js.html.InputElement
+@:html.category(Flow) js.html.InputElement
+@:html.category(Phrasing) js.html.InputElement
+@:html.category(Interactive, {type:"!hidden"}) js.html.InputElement
+@:html.category(Palpable, {type:"!hidden"}) js.html.InputElement
 
-@:html.attr("value", get) js.html.InputElement.value
-@:html.attr("value", set) js.html.InputElement.defaultValue
-@:html.attr("checked", get) js.html.InputElement.checked
-@:html.attr("checked", set) js.html.InputElement.defaultChecked
+// <input type="text">
+// <input> elements without a `type` attribute default to `type="text"`
+// @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/text
+@:html.attr("value", get, {type:"text"}) js.html.InputElement.value
+@:html.attr("value", set, {type:"text"}) js.html.InputElement.defaultValue
+@:html.events(["change", "input"], {type:"text"}) js.html.InputElement
 
-@:default js.html.InputElement.value
-@:default({type:"range"}) js.html.InputElement.valueAsNumber
-@:default({type:"date"}) js.html.InputElement.valueAsDate
-@:default({type:"image"}) js.html.InputElement.src
-@:default({type:"file", multiple:_}) js.html.InputElement.files
+// <input type="button">
+// @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/button
+@:html.attr("value", _, {type:"button"}) js.html.InputElement.value
+@:html.events(["click"], {type:"button"}) js.html.InputElement
+
+// <input type="checkbox">
+// @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/checkbox
+@:html.attr("value", _, {type:"checkbox"}) js.html.InputElement.value
+@:html.attr("checked", get, {type:"checkbox"}) js.html.InputElement.checked
+@:html.attr("checked", set, {type:"checkbox"}) js.html.InputElement.defaultChecked
+@:html.events(["change", "input"], {type:"checkbox"}) js.html.InputElement
+
+// <input type="color">
+// @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/color
+@:html.attr("value", _, {type:"color"}) js.html.InputElement.value
+@:html.events(["change", "input"], {type:"color"}) js.html.InputElement
+
+// <input type="date">
+// @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/date
+@:html.attr("value", _, {type:"date"}) js.html.InputElement.valueAsNumber
+@:html.attr("value", _, {type:"date"}) js.html.InputElement.valueAsDate
+@:html.attr("value", _, {type:"date"}) js.html.InputElement.value
+@:html.events(["change", "input"], {type:"date"}) js.html.InputElement
+
+// <input type="datetime-local">
+// @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/datetime-local
+@:html.attr("value", _, {type:"datetime-local"}) js.html.InputElement.valueAsNumber
+@:html.attr("value", _, {type:"datetime-local"}) js.html.InputElement.value
+@:html.events(["change", "input"], {type:"datetime-local"}) js.html.InputElement
+
+// <input type="email">
+// @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/email
+@:html.attr("value", _, {type:"email"}) js.html.InputElement.value
+@:html.events(["change", "input"], {type:"email"}) js.html.InputElement
+
+// <input type="file">
+// @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/file
+@:html.attr("value", _, {type:"file"}) js.html.InputElement.value
+@:html.attr("accept", _, {type:"file"}) js.html.InputElement.accept
+@:html.attr("capture", _, {type:"file"}) js.html.InputElement.capture
+@:html.attr("files", _, {type:"file"}) js.html.InputElement.files
+@:html.attr("multiple", _, {type:"file"}) js.html.InputElement.multiple
+@:html.events(["change", "input"], {type:"file"}) js.html.InputElement
+
+// <input type="hidden">
+// @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/hidden
+@:html.attr("value", get, {type:"hidden"}) js.html.InputElement.value
+@:html.attr("value", set, {type:"hidden"}) js.html.InputElement.defaultValue
+
+// <input type="image">
+// @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/image
+@:html.attr("src", get, {type:"image"}) js.html.InputElement.src
+@:html.attr("alt", _, {type:"image"}) js.html.InputElement.alt
+
+// <input type="month">
+// @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/month
+@:html.attr("value", _, {type:"month"}) js.html.InputElement.value
+@:html.events(["change", "input"], {type:"month"}) js.html.InputElement
+
+// <input type="number">
+// @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/number
+@:html.attr("value", _, {type:"number"}) js.html.InputElement.valueAsNumber
+@:html.attr("value", _, {type:"number"}) js.html.InputElement.value
+@:html.events(["change", "input"], {type:"number"}) js.html.InputElement
+
+// <input type="password">
+// @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/password
+@:html.attr("value", get, {type:"password"}) js.html.InputElement.value
+@:html.events(["change", "input"], {type:"password"}) js.html.InputElement
+
+// <input type="radio">
+// @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/radio
+@:html.attr("value", _, {type:"radio"}) js.html.InputElement.value
+@:html.attr("checked", get, {type:"radio"}) js.html.InputElement.checked
+@:html.attr("checked", set, {type:"radio"}) js.html.InputElement.defaultChecked
+@:html.events(["change", "input"], {type:"radio"}) js.html.InputElement
+
+// <input type="range">
+// @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/range
+@:html.attr("value", _, {type:"range"}) js.html.InputElement.valueAsNumber
+@:html.attr("value", _, {type:"range"}) js.html.InputElement.value
+@:html.events(["change", "input"], {type:"range"}) js.html.InputElement
+
+// <input type="reset">
+// @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/reset
+@:html.attr("value", _, {type:"reset"}) js.html.InputElement.value
+
+// <input type="search">
+// @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/search
+@:html.attr("value", _, {type:"search"}) js.html.InputElement.value
+@:html.attr("list", _, {type:"search"}) js.html.InputElement.list
+@:html.attr("maxlength", _, {type:"search"}) js.html.InputElement.maxLength
+@:html.attr("minlength", _, {type:"search"}) js.html.InputElement.minLength
+@:html.attr("pattern", _, {type:"search"}) js.html.InputElement.pattern
+@:html.attr("placeholder", _, {type:"search"}) js.html.InputElement.placeholder
+@:html.attr("readonly", _, {type:"search"}) js.html.InputElement.readonly
+@:html.attr("size", _, {type:"search"}) js.html.InputElement.size
+@:html.attr("spellcheck", _, {type:"search"}) js.html.InputElement.spellcheck
+@:html.events(["change", "input"], {type:"search"}) js.html.InputElement
+
+// <input type="submit">
+// @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/submit
+@:html.attr("value", _, {type:"submit"}) js.html.InputElement.value
+@:html.events(["click"], {type:"submit"}) js.html.InputElement
+
+// <input type="tel">
+// @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/tel
+@:html.attr("value", _, {type:"tel"}) js.html.InputElement.value
+@:html.attr("list", _, {type:"tel"}) js.html.InputElement.list
+@:html.attr("maxlength", _, {type:"tel"}) js.html.InputElement.maxLength
+@:html.attr("minlength", _, {type:"tel"}) js.html.InputElement.minLength
+@:html.attr("pattern", _, {type:"tel"}) js.html.InputElement.pattern
+@:html.attr("placeholder", _, {type:"tel"}) js.html.InputElement.placeholder
+@:html.attr("readonly", _, {type:"tel"}) js.html.InputElement.readonly
+@:html.attr("size", _, {type:"tel"}) js.html.InputElement.size
+@:html.events(["change", "input"], {type:"tel"}) js.html.InputElement
+
+// <input type="time">
+// @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/time
+@:html.attr("value", _, {type:"time"}) js.html.InputElement.valueAsNumber
+@:html.attr("value", _, {type:"time"}) js.html.InputElement.valueAsDate
+@:html.attr("value", _, {type:"time"}) js.html.InputElement.value
+@:html.attr("list", _, {type:"time"}) js.html.InputElement.list
+@:html.attr("max", _, {type:"time"}) js.html.InputElement.max
+@:html.attr("min", _, {type:"time"}) js.html.InputElement.min
+@:html.attr("readonly", _, {type:"time"}) js.html.InputElement.readonly
+@:html.attr("step", _, {type:"time"}) js.html.InputElement.step
+@:html.events(["change", "input"], {type:"time"}) js.html.InputElement
+
+// <input type="url">
+// @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/url
+@:html.attr("value", _, {type:"url"}) js.html.InputElement.value
+@:html.attr("list", _, {type:"url"}) js.html.InputElement.list
+@:html.events(["change", "input"], {type:"url"}) js.html.InputElement
+
+// <input type="week">
+// @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/week
+@:html.attr("value", _, {type:"week"}) js.html.InputElement.valueAsNumber
+@:html.attr("value", _, {type:"week"}) js.html.InputElement.valueAsDate
+@:html.attr("value", _, {type:"week"}) js.html.InputElement.value
+@:html.attr("list", _, {type:"week"}) js.html.InputElement.list
+@:html.events(["change", "input"], {type:"week"}) js.html.InputElement
 
 // <label>
 @:html.tag("label") js.html.LabelElement
+@:html.category(Flow) js.html.LabelElement
+@:html.category(Phrasing) js.html.LabelElement
+@:html.category(Interactive) js.html.LabelElement
+@:html.category(Palpable) js.html.LabelElement
 
 // <legend>
 @:html.tag("legend") js.html.LegendElement
 
 // <meter>
 @:html.tag("meter") js.html.MeterElement
+@:html.category(Flow) js.html.MeterElement
+@:html.category(Phrasing) js.html.MeterElement
+@:html.category(Palpable) js.html.MeterElement
 
 // <optgroup>
 @:html.tag("optgroup") js.html.OptGroupElement
@@ -167,12 +401,27 @@
 
 // <output>
 @:html.tag("output") js.html.OutputElement
+@:html.category(Flow) js.html.OutputElement
+@:html.category(Phrasing) js.html.OutputElement
+@:html.category(Palpable) js.html.OutputElement
 
 // <progress>
 @:html.tag("progress") js.html.ProgressElement
+@:html.category(Flow) js.html.ProgressElement
+@:html.category(Phrasing) js.html.ProgressElement
+@:html.category(Palpable) js.html.ProgressElement
 
 // <select>
 @:html.tag("select") js.html.SelectElement
+@:html.category(Flow) js.html.SelectElement
+@:html.category(Phrasing) js.html.SelectElement
+@:html.category(Interactive) js.html.SelectElement
+@:html.category(Palpable) js.html.SelectElement
 
 // <textarea>
 @:html.tag("textarea") js.html.TextAreaElement
+@:html.kind(Escapable) js.html.TextAreaElement
+@:html.category(Flow) js.html.TextAreaElement
+@:html.category(Phrasing) js.html.TextAreaElement
+@:html.category(Interactive) js.html.TextAreaElement
+@:html.category(Palpable) js.html.TextAreaElement
